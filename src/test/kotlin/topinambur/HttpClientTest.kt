@@ -2,8 +2,7 @@ package topinambur
 
 import daikon.HttpServer
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500
-import org.eclipse.jetty.http.HttpStatus.OK_200
+import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
 
 class HttpClientTest {
@@ -58,6 +57,44 @@ class HttpClientTest {
                 val response = "http://localhost:8080/".get(params = mapOf("name" to "Bob"))
                 assertThat(response.statusCode).isEqualTo(INTERNAL_SERVER_ERROR_500)
                 assertThat(response.body).isEqualTo("")
+            }
+    }
+
+    @Test
+    fun `follow redirect from HTTP to HTTPS`() {
+        val response = "http://www.trovaprezzi.it/".get()
+
+        assertThat(response.statusCode).isEqualTo(OK_200)
+    }
+
+    @Test
+    fun `follow redirects`() {
+        HttpServer(8080)
+            .get("/bar") { _, res ->
+                res.redirect("/foo")
+            }
+            .get("/foo") { _, res ->
+                res.write("well done")
+            }
+            .start().use {
+                val response = "http://localhost:8080/bar".get()
+                assertThat(response.statusCode).isEqualTo(OK_200)
+                assertThat(response.body).isEqualTo("well done")
+            }
+    }
+
+    @Test
+    fun `do not follow redirects`() {
+        HttpServer(8080)
+            .get("/bar") { _, res ->
+                res.redirect("/foo")
+            }
+            .get("/foo") { _, res ->
+                res.write("well done")
+            }
+            .start().use {
+                val response = "http://localhost:8080/bar".get(followRedirects = false)
+                assertThat(response.statusCode).isEqualTo(MOVED_TEMPORARILY_302)
             }
     }
 }
