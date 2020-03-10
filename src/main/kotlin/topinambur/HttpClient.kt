@@ -6,7 +6,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 
 class HttpClient(private val url: String) {
-    fun httpCall(
+    fun call(
         method: String = "GET",
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
@@ -25,16 +25,16 @@ class HttpClient(private val url: String) {
         return ServerResponse(connection.responseCode, body(connection))
     }
 
-    fun getCall(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
-        return httpCall("GET", params, headers)
+    fun get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
+        return call("GET", params, headers)
     }
 
-    fun postCall(data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
-        return httpCall("POST", emptyMap(), headers, urlEncode(data))
+    fun post(data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
+        return call("POST", emptyMap(), headers, urlEncode(data))
     }
 
-    fun postCall(data: String = "", headers: Map<String, String> = emptyMap()): ServerResponse {
-        return httpCall("POST", emptyMap(), headers, data)
+    fun post(data: String = "", headers: Map<String, String> = emptyMap()): ServerResponse {
+        return call("POST", emptyMap(), headers, data)
     }
 
     private fun urlEncode(params: Map<String, String>): String {
@@ -52,25 +52,25 @@ class HttpClient(private val url: String) {
     }
 }
 
-fun String.httpCall(
+fun String.call(
     method: String = "GET",
     params: Map<String, String> = emptyMap(),
     headers: Map<String, String> = emptyMap(),
     data: String = ""
 ): ServerResponse {
-    return HttpClient(this).httpCall(method, params, headers, data)
+    return HttpClient(this).call(method, params, headers, data)
 }
 
-fun String.getCall(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
-    return HttpClient(this).getCall(params, headers)
+fun String.get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
+    return HttpClient(this).get(params, headers)
 }
 
-fun String.postCall(data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
-    return HttpClient(this).postCall(data, headers)
+fun String.post(data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap()): ServerResponse {
+    return HttpClient(this).post(data, headers)
 }
 
-fun String.postCall(data: String = "", headers: Map<String, String> = emptyMap()): ServerResponse {
-    return HttpClient(this).postCall(data, headers)
+fun String.post(data: String = "", headers: Map<String, String> = emptyMap()): ServerResponse {
+    return HttpClient(this).post(data, headers)
 }
 
 data class ServerResponse(val statusCode: Int, val body: String)

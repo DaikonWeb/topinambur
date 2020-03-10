@@ -13,7 +13,7 @@ class HttpClientTest {
         HttpServer(8080)
             .get("/") { req, res -> res.write(req.param("name")) }
             .start().use {
-                val response = "http://localhost:8080/".getCall(params = mapOf("name" to "Bob"))
+                val response = "http://localhost:8080/".get(params = mapOf("name" to "Bob"))
                 assertThat(response.statusCode).isEqualTo(OK_200)
                 assertThat(response.body).isEqualTo("Bob")
             }
@@ -24,7 +24,7 @@ class HttpClientTest {
         HttpServer(8080)
             .post("/") { req, res -> res.write(req.body()) }
             .start().use {
-                val response = "http://localhost:8080/".postCall(data = mapOf("name" to "Bob"))
+                val response = "http://localhost:8080/".post(data = mapOf("name" to "Bob"))
                 assertThat(response.statusCode).isEqualTo(OK_200)
                 assertThat(response.body).isEqualTo("name=Bob")
             }
@@ -35,7 +35,7 @@ class HttpClientTest {
         HttpServer(8080)
             .post("/") { req, res -> res.write(req.body()) }
             .start().use {
-                val response = "http://localhost:8080/".postCall(data = "Bob")
+                val response = "http://localhost:8080/".post(data = "Bob")
                 assertThat(response.body).isEqualTo("Bob")
             }
     }
@@ -45,7 +45,7 @@ class HttpClientTest {
         HttpServer(8080)
             .get("/") { req, res -> res.write(req.header("name")) }
             .start().use {
-                val response = "http://localhost:8080/".getCall(headers = mapOf("name" to "Bob"))
+                val response = "http://localhost:8080/".get(headers = mapOf("name" to "Bob"))
                 assertThat(response.body).isEqualTo("Bob")
             }
     }
@@ -55,7 +55,7 @@ class HttpClientTest {
         HttpServer(8080)
             .get("/") { _, res -> res.status(INTERNAL_SERVER_ERROR_500) }
             .start().use {
-                val response = "http://localhost:8080/".getCall(params = mapOf("name" to "Bob"))
+                val response = "http://localhost:8080/".get(params = mapOf("name" to "Bob"))
                 assertThat(response.statusCode).isEqualTo(INTERNAL_SERVER_ERROR_500)
                 assertThat(response.body).isEqualTo("")
             }
