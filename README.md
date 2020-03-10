@@ -1,7 +1,8 @@
 # Topinambur
 
-Topinambur is a simple and minimal library to make HTTP calls in Kotlin with minimal effort. The main goals are:
+![Topinambur](./logo.svg)
 
+Topinambur is a simple and minimal library to make HTTP calls in Kotlin with minimal effort. The main goals are:
 * Use a really lightweight http library
 * Use an object-oriented http library
 
