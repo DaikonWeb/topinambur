@@ -12,7 +12,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .get("/") { req, res -> res.write(req.param("name")) }
                 .start().use {
-                    val response = "http://localhost:8080/".get(params = mapOf("name" to "Bob"))
+                    val response = "http://localhost:8080/".http.get(params = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("Bob")
                 }
@@ -23,7 +23,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .post("/") { req, res -> res.write(req.body()) }
                 .start().use {
-                    val response = "http://localhost:8080/".post(data = mapOf("name" to "Bob"))
+                    val response = "http://localhost:8080/".http.post(data = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("name=Bob")
                 }
@@ -34,7 +34,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .post("/") { req, res -> res.write(req.body()) }
                 .start().use {
-                    val response = "http://localhost:8080/".post(body = "Bob")
+                    val response = "http://localhost:8080/".http.post(body = "Bob")
                     assertThat(response.body).isEqualTo("Bob")
                 }
     }
@@ -44,7 +44,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .post("/") { req, res -> res.write("post response") }
                 .start().use {
-                    val response = "http://localhost:8080/".post()
+                    val response = "http://localhost:8080/".http.post()
                     assertThat(response.body).isEqualTo("post response")
                 }
     }
@@ -54,7 +54,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .get("/") { req, res -> res.write(req.header("name")) }
                 .start().use {
-                    val response = "http://localhost:8080/".get(headers = mapOf("name" to "Bob"))
+                    val response = "http://localhost:8080/".http.get(headers = mapOf("name" to "Bob"))
                     assertThat(response.body).isEqualTo("Bob")
                 }
     }
@@ -64,7 +64,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .get("/") { _, res -> res.status(INTERNAL_SERVER_ERROR_500) }
                 .start().use {
-                    val response = "http://localhost:8080/".get(params = mapOf("name" to "Bob"))
+                    val response = "http://localhost:8080/".http.get(params = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(INTERNAL_SERVER_ERROR_500)
                     assertThat(response.body).isEqualTo("")
                 }
@@ -72,7 +72,7 @@ class HttpClientTest {
 
     @Test
     fun `follow redirect from HTTP to HTTPS`() {
-        val response = "http://www.trovaprezzi.it/".get()
+        val response = "http://www.trovaprezzi.it/".http.get()
 
         assertThat(response.statusCode).isEqualTo(OK_200)
     }
@@ -87,7 +87,7 @@ class HttpClientTest {
                     res.write("well done")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/bar".get()
+                    val response = "http://localhost:8080/bar".http.get()
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("well done")
                 }
@@ -103,7 +103,7 @@ class HttpClientTest {
                     res.write("well done")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/bar".get(followRedirects = false)
+                    val response = "http://localhost:8080/bar".http.get(followRedirects = false)
                     assertThat(response.statusCode).isEqualTo(MOVED_TEMPORARILY_302)
                 }
     }
@@ -113,7 +113,7 @@ class HttpClientTest {
         HttpServer(8080)
                 .delete("/") { req, res -> res.write("DELETED ${req.body()}") }
                 .start().use {
-                    val response = "http://localhost:8080/".delete(body = "Bob")
+                    val response = "http://localhost:8080/".http.delete(body = "Bob")
 
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("DELETED Bob")

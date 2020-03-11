@@ -6,6 +6,10 @@ import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 
+
+val String.http: HttpClient
+    get() = HttpClient(this)
+
 class HttpClient(private val url: String) {
 
     fun get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
@@ -91,28 +95,6 @@ class HttpClient(private val url: String) {
                 .map { "${it.key}=${URLEncoder.encode(it.value, UTF_8.name())}" }
                 .joinToString("&")
     }
-}
-
-fun String.call(
-        method: String,
-        params: Map<String, String> = emptyMap(),
-        data: String = "",
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true
-): ServerResponse {
-    return HttpClient(this).call(method, params, data, headers, followRedirects)
-}
-
-fun String.get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-    return HttpClient(this).get(params, headers, followRedirects)
-}
-
-fun String.post(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-    return HttpClient(this).post(body, data, headers, followRedirects)
-}
-
-fun String.delete(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-    return HttpClient(this).delete(body, data, headers, followRedirects)
 }
 
 data class ServerResponse(val statusCode: Int, val body: String)

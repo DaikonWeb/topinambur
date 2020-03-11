@@ -45,5 +45,5 @@ implementation 'com.github.DaikonWeb:topinambur:0.0.2'
 
 ## Getting Started
 ```
-"https://github.com/DaikonWeb".get()
+"https://github.com/DaikonWeb".http.get()
 ```
