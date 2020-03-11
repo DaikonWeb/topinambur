@@ -12,8 +12,12 @@ val String.http: HttpClient
 
 class HttpClient(private val url: String) {
 
+    fun head(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+        return call("HEAD", params, "", headers, followRedirects)
+    }
+
     fun get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return call("GET", params, "", headers, followRedirects = followRedirects)
+        return call("GET", params, "", headers, followRedirects)
     }
 
     fun post(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {

@@ -119,4 +119,15 @@ class HttpClientTest {
                     assertThat(response.body).isEqualTo("DELETED Bob")
                 }
     }
+
+    @Test
+    fun `HEAD request`() {
+        HttpServer(8080)
+                .head("/") { req, res -> res.write(req.param("name")) }
+                .start().use {
+                    val response = "http://localhost:8080/".http.head(params = mapOf("name" to "Bob"))
+                    assertThat(response.statusCode).isEqualTo(OK_200)
+                    assertThat(response.body).isEqualTo("")
+                }
+    }
 }
