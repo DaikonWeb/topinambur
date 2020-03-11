@@ -97,4 +97,16 @@ class HttpClientTest {
                 assertThat(response.statusCode).isEqualTo(MOVED_TEMPORARILY_302)
             }
     }
+
+    @Test
+    fun `DELETE request`() {
+        HttpServer(8080)
+                .delete("/") { req, res -> res.write("DELETED ${req.body()}") }
+                .start().use {
+                    val response = "http://localhost:8080/".delete(data = "Bob")
+
+                    assertThat(response.statusCode).isEqualTo(OK_200)
+                    assertThat(response.body).isEqualTo("DELETED Bob")
+                }
+    }
 }

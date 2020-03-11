@@ -31,6 +31,22 @@ class HttpClient(private val url: String) {
         return call("POST", emptyMap(), headers, data, followRedirects)
     }
 
+    fun delete(
+            data: Map<String, String>,
+            headers: Map<String, String>,
+            followRedirects: Boolean
+    ): ServerResponse {
+        return call("DELETE", emptyMap(), headers, urlEncode(data), followRedirects)
+    }
+
+    fun delete(
+        data: String = "",
+        headers: Map<String, String>,
+        followRedirects: Boolean
+    ): ServerResponse {
+        return call("DELETE", emptyMap(), headers, data, followRedirects)
+    }
+
     fun call(
         method: String = "GET",
         params: Map<String, String> = emptyMap(),
@@ -122,6 +138,22 @@ fun String.post(
     followRedirects: Boolean = true
 ): ServerResponse {
     return HttpClient(this).post(data, headers, followRedirects = followRedirects)
+}
+
+fun String.delete(
+    data: Map<String, String> = emptyMap(),
+    headers: Map<String, String> = emptyMap(),
+    followRedirects: Boolean = true
+): ServerResponse {
+    return HttpClient(this).delete(data, headers, followRedirects = followRedirects)
+}
+
+fun String.delete(
+    data: String = "",
+    headers: Map<String, String> = emptyMap(),
+    followRedirects: Boolean = true
+): ServerResponse {
+    return HttpClient(this).delete(data, headers, followRedirects = followRedirects)
 }
 
 data class ServerResponse(val statusCode: Int, val body: String)
