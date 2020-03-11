@@ -32,11 +32,21 @@ class HttpClientTest {
     @Test
     fun `POST data`() {
         HttpServer(8080)
-            .post("/") { req, res -> res.write(req.body()) }
-            .start().use {
-                val response = "http://localhost:8080/".post(data = "Bob")
-                assertThat(response.body).isEqualTo("Bob")
-            }
+                .post("/") { req, res -> res.write(req.body()) }
+                .start().use {
+                    val response = "http://localhost:8080/".post(data = "Bob")
+                    assertThat(response.body).isEqualTo("Bob")
+                }
+    }
+
+    @Test
+    fun `POST without body`() {
+        HttpServer(8080)
+                .post("/") { req, res -> res.write("post response") }
+                .start().use {
+                    val response = "http://localhost:8080/".post()
+                    assertThat(response.body).isEqualTo("post response")
+                }
     }
 
     @Test

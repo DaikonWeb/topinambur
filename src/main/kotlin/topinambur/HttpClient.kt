@@ -24,11 +24,15 @@ class HttpClient(private val url: String) {
     }
 
     fun post(
-        data: String = "",
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true
+            data: String = "",
+            headers: Map<String, String> = emptyMap(),
+            followRedirects: Boolean = true
     ): ServerResponse {
         return call("POST", emptyMap(), headers, data, followRedirects)
+    }
+
+    fun post(followRedirects: Boolean = true): ServerResponse {
+        return call("POST", emptyMap(), emptyMap(), "", followRedirects)
     }
 
     fun delete(
@@ -45,6 +49,10 @@ class HttpClient(private val url: String) {
         followRedirects: Boolean
     ): ServerResponse {
         return call("DELETE", emptyMap(), headers, data, followRedirects)
+    }
+
+    fun delete(followRedirects: Boolean = true): ServerResponse {
+        return call("DELETE", emptyMap(), emptyMap(), "", followRedirects)
     }
 
     fun call(
@@ -124,10 +132,14 @@ fun String.get(
     return HttpClient(this).get(params, headers, followRedirects = followRedirects)
 }
 
+fun String.post(followRedirects: Boolean = true): ServerResponse {
+    return HttpClient(this).post(followRedirects)
+}
+
 fun String.post(
-    data: Map<String, String> = emptyMap(),
-    headers: Map<String, String> = emptyMap(),
-    followRedirects: Boolean = true
+        data: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true
 ): ServerResponse {
     return HttpClient(this).post(data, headers, followRedirects = followRedirects)
 }
@@ -138,6 +150,10 @@ fun String.post(
     followRedirects: Boolean = true
 ): ServerResponse {
     return HttpClient(this).post(data, headers, followRedirects = followRedirects)
+}
+
+fun String.delete(followRedirects: Boolean = true): ServerResponse {
+    return HttpClient(this).delete(followRedirects)
 }
 
 fun String.delete(
