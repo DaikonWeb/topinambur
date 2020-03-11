@@ -1,5 +1,6 @@
 package topinambur
 
+import java.lang.RuntimeException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -7,77 +8,55 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class HttpClient(private val url: String) {
 
-    fun get(
-        params: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true
-    ): ServerResponse {
-        return call("GET", params, headers, followRedirects = followRedirects)
+    fun get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+        return call("GET", params, "", headers, followRedirects = followRedirects)
     }
 
-    fun post(
-        data: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true
-    ): ServerResponse {
-        return call("POST", emptyMap(), headers, urlEncode(data), followRedirects)
+    fun post(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+        return callWithBody("POST", body, data, headers, followRedirects)
     }
 
-    fun post(
-            data: String = "",
-            headers: Map<String, String> = emptyMap(),
-            followRedirects: Boolean = true
-    ): ServerResponse {
-        return call("POST", emptyMap(), headers, data, followRedirects)
-    }
-
-    fun post(followRedirects: Boolean = true): ServerResponse {
-        return call("POST", emptyMap(), emptyMap(), "", followRedirects)
-    }
-
-    fun delete(
-            data: Map<String, String>,
-            headers: Map<String, String>,
-            followRedirects: Boolean
-    ): ServerResponse {
-        return call("DELETE", emptyMap(), headers, urlEncode(data), followRedirects)
-    }
-
-    fun delete(
-        data: String = "",
-        headers: Map<String, String>,
-        followRedirects: Boolean
-    ): ServerResponse {
-        return call("DELETE", emptyMap(), headers, data, followRedirects)
-    }
-
-    fun delete(followRedirects: Boolean = true): ServerResponse {
-        return call("DELETE", emptyMap(), emptyMap(), "", followRedirects)
+    fun delete(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+        return callWithBody("DELETE", body, data, headers, followRedirects)
     }
 
     fun call(
-        method: String = "GET",
-        params: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        data: String = "",
-        followRedirects: Boolean = true
+            method: String = "GET",
+            params: Map<String, String> = emptyMap(),
+            data: String = "",
+            headers: Map<String, String> = emptyMap(),
+            followRedirects: Boolean = true
     ): ServerResponse {
         val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
         val response = prepareRequest(url, method, headers, data, followRedirects)
 
         if (followRedirects && response.isRedirectToHttps()) {
-            return HttpClient(response.location()).call(method, params, headers, data, followRedirects)
+            return HttpClient(response.location()).call(method, params, data, headers, followRedirects)
         }
 
         return ServerResponse(response.responseCode, response.body())
     }
 
+    private fun callWithBody(
+            method: String,
+            body: String,
+            data: Map<String, String>,
+            headers: Map<String, String>,
+            followRedirects: Boolean
+    ): ServerResponse {
+        if (body.isNotEmpty() && data.isNotEmpty()) {
+            throw RuntimeException("You can't specify both: data, body")
+        }
+
+        return call(method, emptyMap(), if (body.isNotEmpty()) body else urlEncode(data), headers, followRedirects)
+    }
+
     private fun prepareRequest(
-        url: String,
-        method: String,
-        headers: Map<String, String>,
-        data: String,
-        followRedirects: Boolean
+            url: String,
+            method: String,
+            headers: Map<String, String>,
+            data: String,
+            followRedirects: Boolean
     ): HttpURLConnection {
         return (URL(url).openConnection() as HttpURLConnection).apply {
             headers.forEach { setRequestProperty(it.key, it.value) }
@@ -109,67 +88,31 @@ class HttpClient(private val url: String) {
 
     private fun urlEncode(params: Map<String, String>): String {
         return params
-            .map { "${it.key}=${URLEncoder.encode(it.value, UTF_8.name())}" }
-            .joinToString("&")
+                .map { "${it.key}=${URLEncoder.encode(it.value, UTF_8.name())}" }
+                .joinToString("&")
     }
 }
 
 fun String.call(
-    method: String = "GET",
-    params: Map<String, String> = emptyMap(),
-    headers: Map<String, String> = emptyMap(),
-    data: String = "",
-    followRedirects: Boolean = true
-): ServerResponse {
-    return HttpClient(this).call(method, params, headers, data, followRedirects = followRedirects)
-}
-
-fun String.get(
-    params: Map<String, String> = emptyMap(),
-    headers: Map<String, String> = emptyMap(),
-    followRedirects: Boolean = true
-): ServerResponse {
-    return HttpClient(this).get(params, headers, followRedirects = followRedirects)
-}
-
-fun String.post(followRedirects: Boolean = true): ServerResponse {
-    return HttpClient(this).post(followRedirects)
-}
-
-fun String.post(
-        data: Map<String, String> = emptyMap(),
+        method: String,
+        params: Map<String, String> = emptyMap(),
+        data: String = "",
         headers: Map<String, String> = emptyMap(),
         followRedirects: Boolean = true
 ): ServerResponse {
-    return HttpClient(this).post(data, headers, followRedirects = followRedirects)
+    return HttpClient(this).call(method, params, data, headers, followRedirects)
 }
 
-fun String.post(
-    data: String = "",
-    headers: Map<String, String> = emptyMap(),
-    followRedirects: Boolean = true
-): ServerResponse {
-    return HttpClient(this).post(data, headers, followRedirects = followRedirects)
+fun String.get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+    return HttpClient(this).get(params, headers, followRedirects)
 }
 
-fun String.delete(followRedirects: Boolean = true): ServerResponse {
-    return HttpClient(this).delete(followRedirects)
+fun String.post(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+    return HttpClient(this).post(body, data, headers, followRedirects)
 }
 
-fun String.delete(
-    data: Map<String, String> = emptyMap(),
-    headers: Map<String, String> = emptyMap(),
-    followRedirects: Boolean = true
-): ServerResponse {
-    return HttpClient(this).delete(data, headers, followRedirects = followRedirects)
-}
-
-fun String.delete(
-    data: String = "",
-    headers: Map<String, String> = emptyMap(),
-    followRedirects: Boolean = true
-): ServerResponse {
-    return HttpClient(this).delete(data, headers, followRedirects = followRedirects)
+fun String.delete(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+    return HttpClient(this).delete(body, data, headers, followRedirects)
 }
 
 data class ServerResponse(val statusCode: Int, val body: String)
