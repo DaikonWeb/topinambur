@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    testImplementation "com.github.DaikonWeb:daikon:1.0.0"
+    testImplementation "com.github.DaikonWeb:daikon:1.2.2"
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.5.2")
     testImplementation("net.wuerl.kotlin:assertj-core-kotlin:0.2.1")

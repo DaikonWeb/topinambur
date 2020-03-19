@@ -111,12 +111,12 @@ class HttpClientTest {
     @Test
     fun `DELETE request`() {
         HttpServer(8080)
-                .delete("/") { req, res -> res.write("DELETED ${req.body()}") }
+                .delete("/") { req, res -> res.write("DELETED") }
                 .start().use {
-                    val response = "http://localhost:8080/".http.delete(body = "Bob")
+                    val response = "http://localhost:8080/".http.delete()
 
                     assertThat(response.statusCode).isEqualTo(OK_200)
-                    assertThat(response.body).isEqualTo("DELETED Bob")
+                    assertThat(response.body).isEqualTo("DELETED")
                 }
     }
 
@@ -128,6 +128,16 @@ class HttpClientTest {
                     val response = "http://localhost:8080/".http.head(params = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("")
+                }
+    }
+
+    @Test
+    fun `call with get request`() {
+        HttpServer(8080)
+                .get("/") { req, res -> res.write(req.param("name")) }
+                .start().use {
+                    val response = "http://localhost:8080/".http.call(method = "get", params = mapOf("name" to "Bob"))
+                    assertThat(response.body).isEqualTo("Bob")
                 }
     }
 }

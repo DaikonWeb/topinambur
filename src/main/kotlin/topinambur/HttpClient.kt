@@ -44,7 +44,6 @@ class HttpClient(private val url: String) {
 
         return ServerResponse(response.responseCode, response.body())
     }
-
     private fun callWithBody(
             method: String,
             body: String,
@@ -58,7 +57,7 @@ class HttpClient(private val url: String) {
 
         return call(method, emptyMap(), if (body.isNotEmpty()) body else urlEncode(data), headers, followRedirects)
     }
-
+    
     private fun prepareRequest(
             url: String,
             method: String,
@@ -66,10 +65,12 @@ class HttpClient(private val url: String) {
             data: String,
             followRedirects: Boolean
     ): HttpURLConnection {
+        val normalizedMethod = method.toUpperCase()
+
         return (URL(url).openConnection() as HttpURLConnection).apply {
             headers.forEach { setRequestProperty(it.key, it.value) }
-            requestMethod = method
-            if (data.isNotBlank()) {
+            requestMethod = normalizedMethod
+            if (normalizedMethod == "POST" || normalizedMethod == "PUT") {
                 doOutput = true
                 outputStream.write(data.toByteArray())
             }
