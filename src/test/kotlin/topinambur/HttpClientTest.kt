@@ -4,8 +4,10 @@ import daikon.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.lang.IllegalStateException
 
 class HttpClientTest {
 
@@ -188,5 +190,53 @@ class HttpClientTest {
 
                     assertThat(response.body).isEqualTo("*/*|gzip, deflate|Bob")
                 }
+    }
+
+    @Test
+    fun `responds with headers`() {
+        HttpServer(8080)
+            .options("/") { _, res ->
+                res.header("Allow", "OPTIONS, GET, POST")
+            }
+            .start().use {
+                val response = "http://localhost:8080/".http.options()
+
+                assertThat(response.headers).containsEntry("Allow", "OPTIONS, GET, POST")
+            }
+    }
+
+    @Test
+    fun `response header`() {
+        HttpServer(8080)
+            .options("/") { _, res ->
+                res.header("Allow", "OPTIONS, GET, POST")
+            }
+            .start().use {
+                val response = "http://localhost:8080/".http.options()
+
+                assertThat(response.header("Allow")).isEqualTo("OPTIONS, GET, POST")
+            }
+    }
+
+    @Test
+    fun `response header not found`() {
+        HttpServer(8080)
+            .options("/") { _, _ -> }
+            .start().use {
+                val response = "http://localhost:8080/".http.options()
+
+                assertThrows<IllegalStateException> { response.header("Allow") }
+            }
+    }
+
+    @Test
+    fun `response header for empty key`() {
+        HttpServer(8080)
+            .options("/") { _, _ -> }
+            .start().use {
+                val response = "http://localhost:8080/".http.options()
+
+                assertThat(response.header("")).isEqualTo("HTTP/1.1 200 OK")
+            }
     }
 }

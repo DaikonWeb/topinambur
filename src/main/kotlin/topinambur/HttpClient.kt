@@ -44,13 +44,13 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
     ): ServerResponse {
         val allHeaders = defaultHeaders + headers
         val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
-        val response = prepareRequest(url, method, allHeaders, data, followRedirects)
+        val response: HttpURLConnection = prepareRequest(url, method, allHeaders, data, followRedirects)
 
         if (followRedirects && response.isRedirectToHttps()) {
             return HttpClient(response.location()).call(method, params, data, allHeaders, followRedirects)
         }
 
-        return ServerResponse(response.responseCode, response.body())
+        return ServerResponse(response.responseCode, response.body(), response.headers())
     }
 
     private fun callWithBody(
@@ -89,6 +89,8 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         }
     }
 
+    private fun HttpURLConnection.headers() = headerFields.map { entry -> (entry.key ?: "") to entry.value.first() }.toMap()
+
     private fun HttpURLConnection.location() = getHeaderField("Location")
 
     private fun HttpURLConnection.isRedirectToHttps(): Boolean {
@@ -113,4 +115,8 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
     }
 }
 
-data class ServerResponse(val statusCode: Int, val body: String)
+data class ServerResponse(val statusCode: Int, val body: String, val headers: Map<String, String>) {
+    fun header(key: String): String {
+        return headers[key] ?: error("Header '$key' not found")
+    }
+}
