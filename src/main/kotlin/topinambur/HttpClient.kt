@@ -1,16 +1,14 @@
 package topinambur
 
+import java.io.PrintStream
 import java.lang.RuntimeException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 
-
-val String.http: HttpClient
-    get() = HttpClient(this)
-
-class HttpClient(private val url: String) {
+class HttpClient(private val url: String, log: PrintStream? = null) {
+    private val curl = Curl(log)
 
     fun head(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
         return call("HEAD", params, "", headers, followRedirects)
@@ -44,6 +42,7 @@ class HttpClient(private val url: String) {
 
         return ServerResponse(response.responseCode, response.body())
     }
+
     private fun callWithBody(
             method: String,
             body: String,
@@ -57,7 +56,7 @@ class HttpClient(private val url: String) {
 
         return call(method, emptyMap(), if (body.isNotEmpty()) body else urlEncode(data), headers, followRedirects)
     }
-    
+
     private fun prepareRequest(
             url: String,
             method: String,
@@ -67,10 +66,12 @@ class HttpClient(private val url: String) {
     ): HttpURLConnection {
         val normalizedMethod = method.toUpperCase()
 
+        curl.print(url, normalizedMethod, headers, data, followRedirects)
+
         return (URL(url).openConnection() as HttpURLConnection).apply {
             headers.forEach { setRequestProperty(it.key, it.value) }
             requestMethod = normalizedMethod
-            if (normalizedMethod == "POST" || normalizedMethod == "PUT") {
+            if (normalizedMethod.needsBody) {
                 doOutput = true
                 outputStream.write(data.toByteArray())
             }

@@ -4,6 +4,8 @@ import daikon.HttpServer
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 
 class HttpClientTest {
 
