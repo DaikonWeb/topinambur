@@ -134,6 +134,27 @@ class HttpClientTest {
     }
 
     @Test
+    fun `PUT request`() {
+        HttpServer(8080)
+                .put("/") { req, res -> res.write(req.body()) }
+                .start().use {
+                    val response = "http://localhost:8080/".http.put(body = "Bob")
+                    assertThat(response.body).isEqualTo("Bob")
+                }
+    }
+
+    @Test
+    fun `OPTIONS request`() {
+        HttpServer(8080)
+                .options("/") { _, _ -> }
+                .start().use {
+                    val response = "http://localhost:8080/".http.options(params = mapOf("name" to "Bob"))
+                    assertThat(response.statusCode).isEqualTo(OK_200)
+                    assertThat(response.body).isEqualTo("")
+                }
+    }
+
+    @Test
     fun `call with get request`() {
         HttpServer(8080)
                 .get("/") { req, res -> res.write(req.param("name")) }

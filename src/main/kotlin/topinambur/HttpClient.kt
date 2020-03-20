@@ -15,12 +15,20 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         return call("HEAD", params, "", headers, followRedirects)
     }
 
+    fun options(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+        return call("OPTIONS", params, "", headers, followRedirects)
+    }
+
     fun get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
         return call("GET", params, "", headers, followRedirects)
     }
 
     fun post(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
         return callWithBody("POST", body, data, headers, followRedirects)
+    }
+
+    fun put(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
+        return callWithBody("PUT", body, data, headers, followRedirects)
     }
 
     fun delete(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
