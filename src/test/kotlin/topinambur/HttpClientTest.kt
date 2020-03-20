@@ -142,4 +142,30 @@ class HttpClientTest {
                     assertThat(response.body).isEqualTo("Bob")
                 }
     }
+
+    @Test
+    fun `default headers`() {
+        HttpServer(8080)
+                .get("/") { req, res ->
+                    res.write("${req.header("Accept")}|${req.header("Accept-Encoding")}|${req.header("User-Agent")}")
+                }
+                .start().use {
+                    val response = "http://localhost:8080/".http.get()
+
+                    assertThat(response.body).isEqualTo("*/*|gzip, deflate|daikonweb/topinambur")
+                }
+    }
+
+    @Test
+    fun `overrides default headers`() {
+        HttpServer(8080)
+                .get("/") { req, res ->
+                    res.write("${req.header("Accept")}|${req.header("Accept-Encoding")}|${req.header("User-Agent")}")
+                }
+                .start().use {
+                    val response = "http://localhost:8080/".http.get(headers = mapOf("User-Agent" to "Bob"))
+
+                    assertThat(response.body).isEqualTo("*/*|gzip, deflate|Bob")
+                }
+    }
 }

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class HttpClient(private val url: String, log: PrintStream? = null) {
     private val curl = Curl(log)
+    private val defaultHeaders = mapOf("Accept" to "*/*", "Accept-Encoding" to "gzip, deflate", "User-Agent" to "daikonweb/topinambur")
 
     fun head(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
         return call("HEAD", params, "", headers, followRedirects)
@@ -33,11 +34,12 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             headers: Map<String, String> = emptyMap(),
             followRedirects: Boolean = true
     ): ServerResponse {
+        val allHeaders = defaultHeaders + headers
         val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
-        val response = prepareRequest(url, method, headers, data, followRedirects)
+        val response = prepareRequest(url, method, allHeaders, data, followRedirects)
 
         if (followRedirects && response.isRedirectToHttps()) {
-            return HttpClient(response.location()).call(method, params, data, headers, followRedirects)
+            return HttpClient(response.location()).call(method, params, data, allHeaders, followRedirects)
         }
 
         return ServerResponse(response.responseCode, response.body())
