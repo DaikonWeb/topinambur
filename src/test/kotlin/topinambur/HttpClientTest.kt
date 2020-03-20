@@ -44,7 +44,7 @@ class HttpClientTest {
     @Test
     fun `POST without body`() {
         HttpServer(8080)
-                .post("/") { req, res -> res.write("post response") }
+                .post("/") { _, res -> res.write("post response") }
                 .start().use {
                     val response = "http://localhost:8080/".http.post()
                     assertThat(response.body).isEqualTo("post response")
@@ -113,7 +113,7 @@ class HttpClientTest {
     @Test
     fun `DELETE request`() {
         HttpServer(8080)
-                .delete("/") { req, res -> res.write("DELETED") }
+                .delete("/") { _, res -> res.write("DELETED") }
                 .start().use {
                     val response = "http://localhost:8080/".http.delete()
 
