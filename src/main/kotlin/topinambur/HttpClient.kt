@@ -15,71 +15,78 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
 
     fun head(
-        params: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            params: Map<String, String> = emptyMap(),
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        return call("HEAD", params, "", headers, followRedirects, timeoutMillis)
+        return call("HEAD", params, "", headers, auth, followRedirects, timeoutMillis)
     }
 
     fun options(
-        params: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            params: Map<String, String> = emptyMap(),
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        return call("OPTIONS", params, "", headers, followRedirects, timeoutMillis)
+        return call("OPTIONS", params, "", headers, auth, followRedirects, timeoutMillis)
     }
 
     fun get(
-        params: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            params: Map<String, String> = emptyMap(),
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        return call("GET", params, "", headers, followRedirects, timeoutMillis)
+        return call("GET", params, "", headers, auth, followRedirects, timeoutMillis)
     }
 
     fun post(
-        body: String = "",
-        data: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            body: String = "",
+            data: Map<String, String> = emptyMap(),
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        return callWithBody("POST", body, data, headers, followRedirects, timeoutMillis)
+        return callWithBody("POST", body, data, headers, auth, followRedirects, timeoutMillis)
     }
 
     fun put(
-        body: String = "",
-        data: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            body: String = "",
+            data: Map<String, String> = emptyMap(),
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        return callWithBody("PUT", body, data, headers, followRedirects, timeoutMillis)
+        return callWithBody("PUT", body, data, headers, auth, followRedirects, timeoutMillis)
     }
 
     fun delete(
-        body: String = "",
-        data: Map<String, String> = emptyMap(),
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            body: String = "",
+            data: Map<String, String> = emptyMap(),
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        return callWithBody("DELETE", body, data, headers, followRedirects, timeoutMillis)
+        return callWithBody("DELETE", body, data, headers, auth, followRedirects, timeoutMillis)
     }
 
     fun call(
-        method: String = "GET",
-        params: Map<String, String> = emptyMap(),
-        data: String = "",
-        headers: Map<String, String> = emptyMap(),
-        followRedirects: Boolean = true,
-        timeoutMillis: Int = 30000
+            method: String = "GET",
+            params: Map<String, String> = emptyMap(),
+            data: String = "",
+            headers: Map<String, String> = emptyMap(),
+            auth: AuthorizationStrategy = None(),
+            followRedirects: Boolean = true,
+            timeoutMillis: Int = 30000
     ): ServerResponse {
-        val allHeaders = defaultHeaders + headers
+        val allHeaders = defaultHeaders + headers + auth.toHeader()
         val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
         val response: HttpURLConnection = prepareRequest(url, method, allHeaders, data, followRedirects, timeoutMillis)
 
@@ -89,6 +96,7 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
                 params,
                 data,
                 allHeaders,
+                auth,
                 followRedirects,
                 timeoutMillis
             )
@@ -102,6 +110,7 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         body: String,
         data: Map<String, String>,
         headers: Map<String, String>,
+        auth: AuthorizationStrategy,
         followRedirects: Boolean,
         timeoutMillis: Int
     ): ServerResponse {
@@ -114,6 +123,7 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             emptyMap(),
             if (body.isNotEmpty()) body else urlEncode(data),
             headers,
+            auth,
             followRedirects,
             timeoutMillis
         )

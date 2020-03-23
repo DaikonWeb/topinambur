@@ -277,4 +277,17 @@ class HttpClientTest {
                     assertThat("http://localhost:8080/è%24%26".http.get().body).isEqualTo(encode("è$&", UTF_8.name()))
                 }
     }
+
+    @Test
+    fun `basic auth overrides headers`() {
+        HttpServer(8080)
+                .basicAuthUser("usr", "pwd")
+                .basicAuth("/")
+                .get("/") { _, res -> res.status(OK_200) }
+                .start().use {
+                    val response = "http://localhost:8080/".http.get(auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
+
+                    assertThat(response.statusCode).isEqualTo(OK_200)
+                }
+    }
 }
