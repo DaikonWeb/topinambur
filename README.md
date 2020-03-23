@@ -21,7 +21,7 @@ repositories {
 
 - Add the dependency
 ```
-implementation 'com.github.DaikonWeb:topinambur:1.0.0'
+implementation 'com.github.DaikonWeb:topinambur:1.1.2'
 ```
 
 ### Maven

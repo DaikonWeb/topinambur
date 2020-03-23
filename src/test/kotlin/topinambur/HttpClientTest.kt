@@ -9,6 +9,8 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.lang.IllegalStateException
 import java.net.SocketTimeoutException
+import java.net.URLEncoder.encode
+import java.nio.charset.StandardCharsets.UTF_8
 
 class HttpClientTest {
 
@@ -265,5 +267,14 @@ class HttpClientTest {
                     "http://localhost:8080/".http.options(timeoutMillis = 100)
                 }
             }
+    }
+
+    @Test
+    fun `path parameters supports utf8`() {
+        HttpServer(8080)
+                .get("/:name") { req, res -> res.write(req.param(":name")) }
+                .start().use {
+                    assertThat("http://localhost:8080/è%24%26".http.get().body).isEqualTo(encode("è$&", UTF_8.name()))
+                }
     }
 }

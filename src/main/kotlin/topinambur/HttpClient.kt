@@ -3,6 +3,7 @@ package topinambur
 import java.io.InputStream
 import java.io.PrintStream
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
@@ -128,10 +129,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         timeoutMillis: Int
     ): HttpURLConnection {
         val normalizedMethod = method.toUpperCase()
+        val encodedUrl = URI(url).toASCIIString()
 
-        curl.print(url, normalizedMethod, headers, data, followRedirects)
+        curl.print(encodedUrl, normalizedMethod, headers, data, followRedirects)
 
-        return (URL(url).openConnection() as HttpURLConnection).apply {
+        return (URL(encodedUrl).openConnection() as HttpURLConnection).apply {
             connectTimeout = timeoutMillis
             readTimeout = timeoutMillis
             headers.forEach { setRequestProperty(it.key, it.value) }
@@ -158,10 +160,10 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
     }
 
     private fun HttpURLConnection.body(): String {
-        try {
-            return contentStream.use { it.readBytes() }.toString(UTF_8)
+        return try {
+            contentStream.use { it.readBytes() }.toString(UTF_8)
         } catch (t: Throwable) {
-            return ""
+            ""
         }
     }
 
