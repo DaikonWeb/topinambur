@@ -9,76 +9,129 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class HttpClient(private val url: String, log: PrintStream? = null) {
     private val curl = Curl(log)
-    private val defaultHeaders = mapOf("Accept" to "*/*", "Accept-Encoding" to "gzip, deflate", "User-Agent" to "daikonweb/topinambur")
+    private val defaultHeaders =
+        mapOf("Accept" to "*/*", "Accept-Encoding" to "gzip, deflate", "User-Agent" to "daikonweb/topinambur")
 
-    fun head(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return call("HEAD", params, "", headers, followRedirects)
+    fun head(
+        params: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        return call("HEAD", params, "", headers, followRedirects, timeoutMillis)
     }
 
-    fun options(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return call("OPTIONS", params, "", headers, followRedirects)
+    fun options(
+        params: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        return call("OPTIONS", params, "", headers, followRedirects, timeoutMillis)
     }
 
-    fun get(params: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return call("GET", params, "", headers, followRedirects)
+    fun get(
+        params: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        return call("GET", params, "", headers, followRedirects, timeoutMillis)
     }
 
-    fun post(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return callWithBody("POST", body, data, headers, followRedirects)
+    fun post(
+        body: String = "",
+        data: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        return callWithBody("POST", body, data, headers, followRedirects, timeoutMillis)
     }
 
-    fun put(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return callWithBody("PUT", body, data, headers, followRedirects)
+    fun put(
+        body: String = "",
+        data: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        return callWithBody("PUT", body, data, headers, followRedirects, timeoutMillis)
     }
 
-    fun delete(body: String = "", data: Map<String, String> = emptyMap(), headers: Map<String, String> = emptyMap(), followRedirects: Boolean = true): ServerResponse {
-        return callWithBody("DELETE", body, data, headers, followRedirects)
+    fun delete(
+        body: String = "",
+        data: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        return callWithBody("DELETE", body, data, headers, followRedirects, timeoutMillis)
     }
 
     fun call(
-            method: String = "GET",
-            params: Map<String, String> = emptyMap(),
-            data: String = "",
-            headers: Map<String, String> = emptyMap(),
-            followRedirects: Boolean = true
+        method: String = "GET",
+        params: Map<String, String> = emptyMap(),
+        data: String = "",
+        headers: Map<String, String> = emptyMap(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
     ): ServerResponse {
         val allHeaders = defaultHeaders + headers
         val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
-        val response: HttpURLConnection = prepareRequest(url, method, allHeaders, data, followRedirects)
+        val response: HttpURLConnection = prepareRequest(url, method, allHeaders, data, followRedirects, timeoutMillis)
 
         if (followRedirects && response.isRedirectToHttps()) {
-            return HttpClient(response.location()).call(method, params, data, allHeaders, followRedirects)
+            return HttpClient(response.location()).call(
+                method,
+                params,
+                data,
+                allHeaders,
+                followRedirects,
+                timeoutMillis
+            )
         }
 
         return ServerResponse(response.responseCode, response.body(), response.headers())
     }
 
     private fun callWithBody(
-            method: String,
-            body: String,
-            data: Map<String, String>,
-            headers: Map<String, String>,
-            followRedirects: Boolean
+        method: String,
+        body: String,
+        data: Map<String, String>,
+        headers: Map<String, String>,
+        followRedirects: Boolean,
+        timeoutMillis: Int
     ): ServerResponse {
         if (body.isNotEmpty() && data.isNotEmpty()) {
             throw RuntimeException("You can't specify both: data, body")
         }
 
-        return call(method, emptyMap(), if (body.isNotEmpty()) body else urlEncode(data), headers, followRedirects)
+        return call(
+            method,
+            emptyMap(),
+            if (body.isNotEmpty()) body else urlEncode(data),
+            headers,
+            followRedirects,
+            timeoutMillis
+        )
     }
 
     private fun prepareRequest(
-            url: String,
-            method: String,
-            headers: Map<String, String>,
-            data: String,
-            followRedirects: Boolean
+        url: String,
+        method: String,
+        headers: Map<String, String>,
+        data: String,
+        followRedirects: Boolean,
+        timeoutMillis: Int
     ): HttpURLConnection {
         val normalizedMethod = method.toUpperCase()
 
         curl.print(url, normalizedMethod, headers, data, followRedirects)
 
         return (URL(url).openConnection() as HttpURLConnection).apply {
+            connectTimeout = timeoutMillis
+            readTimeout = timeoutMillis
             headers.forEach { setRequestProperty(it.key, it.value) }
             requestMethod = normalizedMethod
             if (normalizedMethod.needsBody) {
@@ -89,7 +142,8 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         }
     }
 
-    private fun HttpURLConnection.headers() = headerFields.map { entry -> (entry.key ?: "") to entry.value.first() }.toMap()
+    private fun HttpURLConnection.headers() =
+        headerFields.map { entry -> (entry.key ?: "") to entry.value.first() }.toMap()
 
     private fun HttpURLConnection.location() = getHeaderField("Location")
 
@@ -110,8 +164,8 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
 
     private fun urlEncode(params: Map<String, String>): String {
         return params
-                .map { "${it.key}=${URLEncoder.encode(it.value, UTF_8.name())}" }
-                .joinToString("&")
+            .map { "${it.key}=${URLEncoder.encode(it.value, UTF_8.name())}" }
+            .joinToString("&")
     }
 }
 

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.assertThrows
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.lang.IllegalStateException
+import java.net.SocketTimeoutException
 
 class HttpClientTest {
 
@@ -237,6 +238,17 @@ class HttpClientTest {
                 val response = "http://localhost:8080/".http.options()
 
                 assertThat(response.header("")).isEqualTo("HTTP/1.1 200 OK")
+            }
+    }
+
+    @Test
+    fun `response timeout`() {
+        HttpServer(8080)
+            .options("/") { _, _ -> Thread.sleep(200)}
+            .start().use {
+                assertThrows<SocketTimeoutException> {
+                    "http://localhost:8080/".http.options(timeoutMillis = 100)
+                }
             }
     }
 }
