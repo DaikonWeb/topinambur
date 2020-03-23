@@ -12,8 +12,7 @@ import java.util.zip.InflaterInputStream
 
 class HttpClient(private val url: String, log: PrintStream? = null) {
     private val curl = Curl(log)
-    private val defaultHeaders =
-        mapOf("Accept" to "*/*", "Accept-Encoding" to "gzip, deflate", "User-Agent" to "daikonweb/topinambur")
+    private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
 
     fun head(
         params: Map<String, String> = emptyMap(),

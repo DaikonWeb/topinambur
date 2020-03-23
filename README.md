@@ -21,7 +21,7 @@ repositories {
 
 - Add the dependency
 ```
-implementation 'com.github.DaikonWeb:topinambur:1.1.2'
+implementation 'com.github.DaikonWeb:topinambur:1.1.3'
 ```
 
 ### Maven
@@ -39,11 +39,16 @@ implementation 'com.github.DaikonWeb:topinambur:1.1.2'
 <dependency>
     <groupId>com.github.DaikonWeb</groupId>
     <artifactId>topinambur</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.3</version>
 </dependency>
 ```
 
 ## Getting Started
 ```
 "https://github.com/DaikonWeb".http.get()
+```
+
+## Enable request logging as Curl
+```
+HttpClient("https://github.com/DaikonWeb", System.out).get().body
 ```
