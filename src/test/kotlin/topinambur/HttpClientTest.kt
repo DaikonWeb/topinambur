@@ -233,12 +233,27 @@ class HttpClientTest {
     @Test
     fun `response header for empty key`() {
         HttpServer(8080)
-            .options("/") { _, _ -> }
-            .start().use {
-                val response = "http://localhost:8080/".http.options()
+                .options("/") { _, _ -> }
+                .start().use {
+                    val response = "http://localhost:8080/".http.options()
 
-                assertThat(response.header("")).isEqualTo("HTTP/1.1 200 OK")
-            }
+                    assertThat(response.header("")).isEqualTo("HTTP/1.1 200 OK")
+                }
+    }
+
+    @Test
+    fun `response body on 4xx status codes`() {
+        HttpServer(8080)
+                .get("/") { _, res ->
+                    res.status(UNAUTHORIZED_401)
+                    res.write("Go Away")
+                }
+                .start().use {
+                    val response = "http://localhost:8080/".http.get()
+
+                    assertThat(response.statusCode).isEqualTo(UNAUTHORIZED_401)
+                    assertThat(response.body).isEqualTo("Go Away")
+                }
     }
 
     @Test

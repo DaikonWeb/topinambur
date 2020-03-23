@@ -1,11 +1,13 @@
 package topinambur
 
+import java.io.InputStream
 import java.io.PrintStream
-import java.lang.RuntimeException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.zip.GZIPInputStream
+import java.util.zip.InflaterInputStream
 
 class HttpClient(private val url: String, log: PrintStream? = null) {
     private val curl = Curl(log)
@@ -138,6 +140,7 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
                 doOutput = true
                 outputStream.write(data.toByteArray())
             }
+            doInput
             instanceFollowRedirects = followRedirects
         }
     }
@@ -155,12 +158,23 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
     }
 
     private fun HttpURLConnection.body(): String {
-        return try {
-            inputStream.bufferedReader().readText()
+        try {
+            return contentStream.use { it.readBytes() }.toString(UTF_8)
         } catch (t: Throwable) {
-            ""
+            return ""
         }
     }
+
+    private val HttpURLConnection.contentStream: InputStream
+        get() {
+            val stream = try { inputStream } catch (t: Throwable) { errorStream }
+
+            return when (headerFields["Content-Encoding"]?.first()?.toLowerCase()) {
+                "gzip" -> GZIPInputStream(stream)
+                "deflate" -> InflaterInputStream(stream)
+                else -> stream
+            }
+        }
 
     private fun urlEncode(params: Map<String, String>): String {
         return params
