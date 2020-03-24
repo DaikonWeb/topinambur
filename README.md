@@ -21,11 +21,11 @@ repositories {
 
 - Add the dependency
 ```
-implementation 'com.github.DaikonWeb:topinambur:1.1.3'
+implementation 'com.github.DaikonWeb:topinambur:1.2.4'
 ```
 
 ### Maven
-- Add the JitPack repository to your build file 
+- Add the JitPack repository to your build file
 ```
 <repositories>
     <repository>
@@ -39,7 +39,7 @@ implementation 'com.github.DaikonWeb:topinambur:1.1.3'
 <dependency>
     <groupId>com.github.DaikonWeb</groupId>
     <artifactId>topinambur</artifactId>
-    <version>1.1.3</version>
+    <version>1.2.4</version>
 </dependency>
 ```
 
