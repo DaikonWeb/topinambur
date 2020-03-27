@@ -5,9 +5,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
-import java.lang.IllegalStateException
 import java.net.SocketTimeoutException
 import java.net.URLEncoder.encode
 import java.nio.charset.StandardCharsets.UTF_8
