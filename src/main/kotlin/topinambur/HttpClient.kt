@@ -193,9 +193,3 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             .joinToString("&")
     }
 }
-
-data class ServerResponse(val statusCode: Int, val body: String, val headers: Map<String, String>) {
-    fun header(key: String): String {
-        return headers[key] ?: error("Header '$key' not found")
-    }
-}

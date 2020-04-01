@@ -45,7 +45,10 @@ implementation 'com.github.DaikonWeb:topinambur:1.2.4'
 
 ## Getting Started
 ```
-"https://github.com/DaikonWeb".http.get()
+val response = "https://github.com/DaikonWeb".http.get()
+
+println(response.statusCode)
+println(response.body)
 ```
 
 ## Enable request logging as Curl
