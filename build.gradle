@@ -1,5 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.70'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.71'
+    id 'java-library'
 }
 
 repositories {
@@ -8,25 +9,14 @@ repositories {
 }
 
 dependencies {
+    implementation platform('org.jetbrains.kotlin:kotlin-bom')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    testImplementation "com.github.DaikonWeb:daikon:1.2.2"
+    testImplementation "com.github.DaikonWeb:daikon:1.3.6"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.2"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:5.5.2"
-    testImplementation "net.wuerl.kotlin:assertj-core-kotlin:0.2.1"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    testImplementation "org.assertj:assertj-core:3.15.0"
 }
 
 test {
     useJUnitPlatform()
-}
-
-jar {
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }

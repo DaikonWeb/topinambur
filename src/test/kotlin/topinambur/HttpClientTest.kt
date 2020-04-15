@@ -2,9 +2,9 @@ package topinambur
 
 import daikon.HttpServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.net.SocketTimeoutException
 import java.net.URLEncoder.encode
 import java.nio.charset.StandardCharsets.UTF_8
@@ -225,7 +225,7 @@ class HttpClientTest {
             .start().use {
                 val response = "http://localhost:8080/".http.options()
 
-                assertThrows<IllegalStateException> { response.header("Allow") }
+                assertThatThrownBy { response.header("Allow") }.isInstanceOf(IllegalStateException::class.java)
             }
     }
 
@@ -260,9 +260,9 @@ class HttpClientTest {
         HttpServer(8080)
             .options("/") { _, _ -> Thread.sleep(200)}
             .start().use {
-                assertThrows<SocketTimeoutException> {
+                assertThatThrownBy {
                     "http://localhost:8080/".http.options(timeoutMillis = 100)
-                }
+                }.isInstanceOf(SocketTimeoutException::class.java)
             }
     }
 
