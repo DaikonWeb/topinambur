@@ -1,38 +1,110 @@
 package topinambur
 
-import daikon.HttpServer
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.jupiter.api.Test
-import java.io.File
-import java.nio.charset.StandardCharsets.UTF_8
+import javax.servlet.MultipartConfigElement
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
 
 class BinaryDownloadTest {
 
     @Test
     fun `can download content as byte array`() {
         val byteArray = byteArrayOf(98, 99, 77)
-        HttpServer(8080)
-            .get("/") { _, res -> res.write(byteArray) }
-            .start().use {
-                val response = "http://localhost:8080/".http.get()
-                assertThat(response.bytes).isEqualTo(byteArray)
-            }
+
+        FileMirrorServer().respondWith(byteArray).start().use {
+            val response = "http://localhost:8080/".http.post()
+
+            assertThat(response.bytes).isEqualTo(byteArray)
+        }
     }
 
     @Test
-    fun `can upload file as byte array`() {
-        val byteArray = "fileInBinaryFormat".toByteArray(UTF_8)
-        var spiedBody = ""
+    fun `can upload a file as byte array`() {
+        FileMirrorServer().start().use { server ->
+            "http://localhost:8080/".http.post(
+                    data = mapOf("file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)))
+            )
 
-        HttpServer(8080)
-            .post("/") { req, _ -> spiedBody = req.body() }
-            .start().use {
-                "http://localhost:8080/".http.post(
-                        data = mapOf("file" to FilePart("a.txt", "plain/text", byteArray))
-                )
+            assertThat(server.receivedFiles().single())
+                    .isEqualTo(ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)))
+        }
+    }
+}
 
-                assertThat(spiedBody).contains("Content-Disposition: form-data; name=\"file\"; filename=\"a.txt\"")
-                assertThat(spiedBody).contains("fileInBinaryFormat")
+class FileMirrorServer(port: Int = 8080) : AutoCloseable {
+    private val server = Server(port)
+    private val servlet = FileMirrorServlet()
+
+    fun start(): FileMirrorServer {
+        val handler = ServletContextHandler()
+        val servletHolder = ServletHolder(servlet)
+        servletHolder.registration.setMultipartConfig(MultipartConfigElement("/tmp"))
+        handler.addServlet(servletHolder, "/*")
+        server.handler = handler
+        server.start()
+        return this
+    }
+
+    fun receivedFiles() = servlet.receivedFiles()
+
+    override fun close() {
+        server.stop()
+    }
+
+    fun respondWith(byteArray: ByteArray): FileMirrorServer {
+        servlet.respondWith(byteArray)
+        return this
+    }
+}
+
+class FileMirrorServlet : HttpServlet() {
+
+    private val receivedFiles = mutableListOf<ReceivedFile>()
+    private var respondWith = byteArrayOf()
+
+    override fun doPost(request: HttpServletRequest?, response: HttpServletResponse?) {
+        try {
+            request?.parts?.forEach {
+                val file = it.inputStream.readAllBytes()
+                receivedFiles.add(ReceivedFile(it.submittedFileName, it.contentType, file))
             }
+        } catch (t: Throwable) {
+        }
+
+        response?.outputStream?.write(respondWith)
+    }
+
+    fun receivedFiles() = receivedFiles.toList()
+    fun respondWith(byteArray: ByteArray) {
+        respondWith = byteArray
+    }
+
+}
+
+data class ReceivedFile(val name: String, val type: String, val content: ByteArray) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ReceivedFile
+
+        if (name != other.name) return false
+        if (type != other.type) return false
+        if (!content.contentEquals(other.content)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + content.contentHashCode()
+        return result
     }
 }
