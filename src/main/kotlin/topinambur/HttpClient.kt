@@ -102,7 +102,8 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             )
         }
 
-        return ServerResponse(response.responseCode, response.body(), response.headers())
+        val bytes = response.body()
+        return ServerResponse(response.responseCode, bytes.toString(UTF_8), bytes, response.headers())
     }
 
     private fun callWithBody(
@@ -168,11 +169,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
                 responseCode <= 399
     }
 
-    private fun HttpURLConnection.body(): String {
+    private fun HttpURLConnection.body(): ByteArray {
         return try {
-            contentStream.use { it.readBytes() }.toString(UTF_8)
+            contentStream.use { it.readBytes() }
         } catch (t: Throwable) {
-            ""
+            ByteArray(0)
         }
     }
 
