@@ -10,35 +10,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
-interface Part {
-    fun encode(): ByteArray
-}
-
-class FilePart(private val name: String, private val type: String, private val content: ByteArray): Part {
-    override fun encode() = "; filename=\"${name}\"\r\nContent-Type: ${type}\r\n\r\n".toByteArray(UTF_8) +
-        content + "\r\n\r\n".toByteArray(UTF_8)
-}
-
-class FieldPart(private val value: String): Part {
-    override fun encode() = "\r\n\r\n${value}\r\n".toByteArray(UTF_8)
-}
-
-class MultipartFormData(private val data: Map<String, Part>) {
-    private val boundaryString = "--------------------------1b0caa1adf4aaa9f"
-    private val boundary = boundaryString.toByteArray(UTF_8)
-    private val type = "multipart/form-data; boundary=${boundaryString.substring(2)}"
-
-    fun contentTypeHeader(): Map<String, String> = mapOf("Content-Type" to type)
-
-    fun body() = boundary +
-            data.entries.fold(byteArrayOf()) { acc, current -> acc + encodeKey(current.key) + current.value.encode() + boundary } +
-            "--".toByteArray(UTF_8)
-
-    private fun encodeKey(key: String): ByteArray {
-        return "\r\nContent-Disposition: form-data; name=\"$key\"".toByteArray(UTF_8)
-    }
-}
-
 
 class HttpClient(private val url: String, log: PrintStream? = null) {
     private val curl = Curl(log)
