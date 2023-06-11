@@ -11,41 +11,45 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
 
-class HttpClient(private val url: String, log: PrintStream? = null) {
+class HttpClient(private val baseUrl: String = "", log: PrintStream? = null) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
 
     fun head(
+            url: String = "",
             params: Map<String, String> = emptyMap(),
             headers: Map<String, String> = emptyMap(),
             auth: AuthorizationStrategy = None(),
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        return call("HEAD", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
+        return call(url, "HEAD", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
     fun options(
+            url: String = "",
             params: Map<String, String> = emptyMap(),
             headers: Map<String, String> = emptyMap(),
             auth: AuthorizationStrategy = None(),
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        return call("OPTIONS", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
+        return call(url, "OPTIONS", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
     fun get(
+            url: String = "",
             params: Map<String, String> = emptyMap(),
             headers: Map<String, String> = emptyMap(),
             auth: AuthorizationStrategy = None(),
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        return call("GET", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
+        return call(url, "GET", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
     fun post(
+            url: String = "",
             body: String = "",
             data: Map<String, String> = emptyMap(),
             headers: Map<String, String> = emptyMap(),
@@ -53,10 +57,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        return callWithBody("POST", body.toByteArray(), data, headers, auth, followRedirects, timeoutMillis)
+        return callWithBody(url, "POST", body.toByteArray(), data, headers, auth, followRedirects, timeoutMillis)
     }
 
     fun post(
+            url: String = "",
             data: Map<String, Part>,
             headers: Map<String, String> = emptyMap(),
             auth: AuthorizationStrategy = None(),
@@ -64,10 +69,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             timeoutMillis: Int = 30000
     ): ServerResponse {
         val formData = MultipartFormData(data)
-        return callWithBody("POST", formData.body(), emptyMap(), headers + formData.contentTypeHeader(), auth, followRedirects, timeoutMillis)
+        return callWithBody(url, "POST", formData.body(), emptyMap(), headers + formData.contentTypeHeader(), auth, followRedirects, timeoutMillis)
     }
 
     fun put(
+            url: String = "",
             body: String = "",
             data: Map<String, String> = emptyMap(),
             headers: Map<String, String> = emptyMap(),
@@ -75,10 +81,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        return callWithBody("PUT", body.toByteArray(), data, headers, auth, followRedirects, timeoutMillis)
+        return callWithBody(url, "PUT", body.toByteArray(), data, headers, auth, followRedirects, timeoutMillis)
     }
 
     fun delete(
+            url: String = "",
             body: String = "",
             data: Map<String, String> = emptyMap(),
             headers: Map<String, String> = emptyMap(),
@@ -86,10 +93,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        return callWithBody("DELETE", body.toByteArray(), data, headers, auth, followRedirects, timeoutMillis)
+        return callWithBody(url, "DELETE", body.toByteArray(), data, headers, auth, followRedirects, timeoutMillis)
     }
 
     fun call(
+            url: String = "",
             method: String = "GET",
             params: Map<String, String> = emptyMap(),
             data: ByteArray = byteArrayOf(),
@@ -98,27 +106,11 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
             followRedirects: Boolean = true,
             timeoutMillis: Int = 30000
     ): ServerResponse {
-        val allHeaders = defaultHeaders + headers + auth.toHeader()
-        val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
-        val response: HttpURLConnection = prepareRequest(url, method, allHeaders, data, followRedirects, timeoutMillis)
-
-        if (followRedirects && response.isRedirectToHttps()) {
-            return HttpClient(response.location()).call(
-                    method,
-                    params,
-                    data,
-                    allHeaders,
-                    auth,
-                    followRedirects,
-                    timeoutMillis
-            )
-        }
-
-        val bytes = response.body()
-        return ServerResponse(response.responseCode, bytes.toString(UTF_8), bytes, response.headers())
+        return doRequest(build(url), method, params, data, headers, auth, followRedirects, timeoutMillis)
     }
 
     private fun callWithBody(
+        url: String = "",
         method: String,
         body: ByteArray,
         data: Map<String, String>,
@@ -132,6 +124,7 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         }
 
         return call(
+                url,
                 method,
                 emptyMap(),
                 if (body.isNotEmpty()) body else (urlEncode(data)).toByteArray(),
@@ -142,8 +135,38 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
         )
     }
 
+    private fun doRequest(
+        url: String = "",
+        method: String = "GET",
+        params: Map<String, String> = emptyMap(),
+        data: ByteArray = byteArrayOf(),
+        headers: Map<String, String> = emptyMap(),
+        auth: AuthorizationStrategy = None(),
+        followRedirects: Boolean = true,
+        timeoutMillis: Int = 30000
+    ): ServerResponse {
+        val allHeaders = defaultHeaders + headers + auth.toHeader()
+        val url = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
+        val response: HttpURLConnection = prepareRequest(url, method, allHeaders, data, followRedirects, timeoutMillis)
+
+        if (followRedirects && response.isRedirectToHttps()) {
+            return doRequest(response.location(),
+                method,
+                params,
+                data,
+                allHeaders,
+                auth,
+                true,
+                timeoutMillis
+            )
+        }
+
+        val bytes = response.body()
+        return ServerResponse(response.responseCode, bytes.toString(UTF_8), bytes, response.headers())
+    }
+
     private fun prepareRequest(
-        url: String,
+        url: String = "",
         method: String,
         headers: Map<String, String>,
         data: ByteArray,
@@ -199,6 +222,10 @@ class HttpClient(private val url: String, log: PrintStream? = null) {
                 else -> stream
             }
         }
+
+    private fun build(url: String): String {
+        return if (baseUrl.isEmpty()) url else "$baseUrl$url"
+    }
 
     private fun urlEncode(params: Map<String, String>): String {
         return params

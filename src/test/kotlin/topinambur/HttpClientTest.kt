@@ -278,15 +278,28 @@ class HttpClientTest {
     @Test
     fun `basic auth overrides headers`() {
         HttpServer(8080)
-                .basicAuthUser("usr", "pwd")
-                .basicAuth("/")
-                .get("/") { req, res ->
-                    req.body()
-                    res.status(OK_200) }
-                .start().use {
-                    val response = "http://localhost:8080/".http.get(auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
+            .basicAuthUser("usr", "pwd")
+            .basicAuth("/")
+            .get("/") { _, res -> res.status(OK_200) }
+            .start().use {
+                val response = "http://localhost:8080/".http.get(auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
 
-                    assertThat(response.statusCode).isEqualTo(OK_200)
-                }
+                assertThat(response.statusCode).isEqualTo(OK_200)
+            }
+    }
+
+    @Test
+    fun `two request with same baseUrl using the same client`() {
+        HttpServer(8080)
+            .get("/first") { _, res -> res.status(OK_200) }
+            .post("/second") { _, res -> res.status(CREATED_201) }
+            .start().use {
+                val client = HttpClient("http://localhost:8080")
+                val response1 = client.get("/first")
+                val response2 = client.post("/second")
+
+                assertThat(response1.statusCode).isEqualTo(OK_200)
+                assertThat(response2.statusCode).isEqualTo(CREATED_201)
+            }
     }
 }
