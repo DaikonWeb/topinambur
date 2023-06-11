@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
 
-class HttpClient(private val baseUrl: String = "", log: PrintStream? = null) {
+class Http(private val baseUrl: String = "", log: PrintStream? = null) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
 

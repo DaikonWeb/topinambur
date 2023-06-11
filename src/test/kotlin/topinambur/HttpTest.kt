@@ -5,11 +5,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.net.SocketTimeoutException
 import java.net.URLEncoder.encode
 import java.nio.charset.StandardCharsets.UTF_8
 
-class HttpClientTest {
+class HttpTest {
 
     @Test
     fun `GET request`() {
@@ -294,12 +296,22 @@ class HttpClientTest {
             .get("/first") { _, res -> res.status(OK_200) }
             .post("/second") { _, res -> res.status(CREATED_201) }
             .start().use {
-                val client = HttpClient("http://localhost:8080")
-                val response1 = client.get("/first")
-                val response2 = client.post("/second")
+                val localhost = Http("http://localhost:8080")
 
-                assertThat(response1.statusCode).isEqualTo(OK_200)
-                assertThat(response2.statusCode).isEqualTo(CREATED_201)
+                assertThat(localhost.get("/first").statusCode).isEqualTo(OK_200)
+                assertThat(localhost.post("/second").statusCode).isEqualTo(CREATED_201)
+            }
+    }
+
+    @Test
+    fun `test http client string extension enabling logs`() {
+        HttpServer(8080)
+            .get("/") { _, res -> res.status(OK_200) }
+            .start().use {
+                val output = ByteArrayOutputStream()
+                "http://localhost:8080".http(PrintStream(output)).get()
+
+                assertThat(output.toString()).isEqualTo("curl -v -L -X GET -H 'Accept: */*' -H 'User-Agent: daikonweb/topinambur' 'http://localhost:8080'\n")
             }
     }
 }
