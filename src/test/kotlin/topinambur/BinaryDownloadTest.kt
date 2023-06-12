@@ -5,6 +5,7 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.jupiter.api.Test
+import topinambur.Http.Companion.HTTP
 import javax.servlet.MultipartConfigElement
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -18,7 +19,7 @@ class BinaryDownloadTest {
         val byteArray = byteArrayOf(98, 99, 77)
 
         FileMirrorServer().respondWith(byteArray).start().use {
-            val response = "http://localhost:8080/".http.post(body = "")
+            val response = HTTP.post("http://localhost:8080/", body = "")
 
             assertThat(response.bytes).isEqualTo(byteArray)
         }
@@ -27,17 +28,22 @@ class BinaryDownloadTest {
     @Test
     fun `can upload a file as byte array`() {
         FileMirrorServer().start().use { server ->
-            "http://localhost:8080/".http.post(
-                    data = Multipart(mapOf(
+            HTTP.post(
+                url = "http://localhost:8080/",
+                data = Multipart(
+                    mapOf(
                         "file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
                         "field" to FieldPart("value")
-                    ))
+                    )
+                )
             )
 
-            assertThat(server.receivedFiles()).isEqualTo(listOf(
-                ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
-                ReceivedFile("field", null, "value".toByteArray())
-            ))
+            assertThat(server.receivedFiles()).isEqualTo(
+                listOf(
+                    ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
+                    ReceivedFile("field", null, "value".toByteArray())
+                )
+            )
         }
     }
 }

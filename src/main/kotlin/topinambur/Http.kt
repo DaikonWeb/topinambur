@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
-
 class Http(private val baseUrl: String = "", log: PrintStream? = null) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
@@ -254,5 +253,9 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null) {
         return params
             .map { "${it.key}=${URLEncoder.encode(it.value, UTF_8.name())}" }
             .joinToString("&")
+    }
+
+    companion object {
+        val HTTP: Http = Http()
     }
 }

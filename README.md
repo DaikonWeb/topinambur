@@ -45,7 +45,9 @@ implementation 'com.github.DaikonWeb:topinambur:1.6.0'
 
 ## Getting Started
 ```
-val response = "https://github.com/DaikonWeb".http.get()
+import topinambur.Http.Companion.HTTP
+
+val response = HTTP.get("https://github.com/DaikonWeb")
 
 println(response.statusCode)
 println(response.body)
@@ -63,5 +65,6 @@ println(response.body)
 
 ## Enable request logging as Curl
 ```
-HttpClient("https://github.com/DaikonWeb", System.out).get().body
+val http = HttpClient(log = System.out)
+http.get("https://github.com/DaikonWeb").body
 ```

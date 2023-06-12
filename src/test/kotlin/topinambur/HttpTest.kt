@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.eclipse.jetty.http.HttpStatus.*
 import org.junit.jupiter.api.Test
+import topinambur.Http.Companion.HTTP
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.net.SocketTimeoutException
@@ -18,7 +19,7 @@ class HttpTest {
         HttpServer(8080)
                 .get("/") { req, res -> res.write(req.param("name")) }
                 .start().use {
-                    val response = "http://localhost:8080/".http.get(params = mapOf("name" to "Bob"))
+                    val response = HTTP.get("http://localhost:8080/", params = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("Bob")
                 }
@@ -29,7 +30,7 @@ class HttpTest {
         HttpServer(8080)
                 .post("/") { req, res -> res.write(req.body()) }
                 .start().use {
-                    val response = "http://localhost:8080/".http.post(data = mapOf("name" to "Bob"))
+                    val response = HTTP.post("http://localhost:8080/", data = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("name=Bob")
                 }
@@ -40,7 +41,7 @@ class HttpTest {
         HttpServer(8080)
                 .post("/") { req, res -> res.write(req.body()) }
                 .start().use {
-                    val response = "http://localhost:8080/".http.post(body = "Bob")
+                    val response = HTTP.post("http://localhost:8080/", body = "Bob")
                     assertThat(response.body).isEqualTo("Bob")
                 }
     }
@@ -50,7 +51,7 @@ class HttpTest {
         HttpServer(8080)
                 .post("/") { _, res -> res.write("post response") }
                 .start().use {
-                    val response = "http://localhost:8080/".http.post(body = "")
+                    val response = HTTP.post("http://localhost:8080/", body = "")
                     assertThat(response.body).isEqualTo("post response")
                 }
     }
@@ -60,7 +61,7 @@ class HttpTest {
         HttpServer(8080)
                 .get("/") { req, res -> res.write(req.header("name")) }
                 .start().use {
-                    val response = "http://localhost:8080/".http.get(headers = mapOf("name" to "Bob"))
+                    val response = HTTP.get("http://localhost:8080/", headers = mapOf("name" to "Bob"))
                     assertThat(response.body).isEqualTo("Bob")
                 }
     }
@@ -70,7 +71,7 @@ class HttpTest {
         HttpServer(8080)
                 .get("/") { _, res -> res.status(INTERNAL_SERVER_ERROR_500) }
                 .start().use {
-                    val response = "http://localhost:8080/".http.get(params = mapOf("name" to "Bob"))
+                    val response = HTTP.get("http://localhost:8080/", params = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(INTERNAL_SERVER_ERROR_500)
                     assertThat(response.body).isEqualTo("")
                 }
@@ -78,7 +79,7 @@ class HttpTest {
 
     @Test
     fun `follow redirect from HTTP to HTTPS`() {
-        val response = "http://www.trovaprezzi.it/".http.get()
+        val response = HTTP.get("http://www.trovaprezzi.it/", )
 
         assertThat(response.statusCode).isEqualTo(OK_200)
     }
@@ -93,7 +94,7 @@ class HttpTest {
                     res.write("well done")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/bar".http.get()
+                    val response = HTTP.get("http://localhost:8080/bar", )
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("well done")
                 }
@@ -109,7 +110,7 @@ class HttpTest {
                     res.write("well done")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/bar".http.get(followRedirects = false)
+                    val response = HTTP.get("http://localhost:8080/bar", followRedirects = false)
                     assertThat(response.statusCode).isEqualTo(MOVED_TEMPORARILY_302)
                 }
     }
@@ -119,7 +120,7 @@ class HttpTest {
         HttpServer(8080)
             .delete("/") { _, res -> res.write("DELETED") }
             .start().use {
-                val response = "http://localhost:8080/".http.delete()
+                val response = HTTP.delete("http://localhost:8080/", )
 
                 assertThat(response.statusCode).isEqualTo(OK_200)
                 assertThat(response.body).isEqualTo("DELETED")
@@ -131,7 +132,7 @@ class HttpTest {
         HttpServer(8080)
             .delete("/") { req, res -> res.write("DELETE ${req.body()}") }
             .start().use {
-                val response = "http://localhost:8080/".http.delete(body = "ME")
+                val response = HTTP.delete("http://localhost:8080/", body = "ME")
 
                 assertThat(response.body).isEqualTo("DELETE ME")
             }
@@ -142,7 +143,7 @@ class HttpTest {
         HttpServer(8080)
             .delete("/") { req, res -> res.write("DELETE ${req.param("text")}") }
             .start().use {
-                val response = "http://localhost:8080/".http.delete(data = mapOf("text" to "hello"))
+                val response = HTTP.delete("http://localhost:8080/", data = mapOf("text" to "hello"))
 
                 assertThat(response.body).isEqualTo("DELETE hello")
             }
@@ -153,7 +154,7 @@ class HttpTest {
         HttpServer(8080)
             .head("/") { _, res -> res.write("IGNORE") }
             .start().use {
-                val response = "http://localhost:8080/".http.head()
+                val response = HTTP.head("http://localhost:8080/", )
 
                 assertThat(response.statusCode).isEqualTo(OK_200)
                 assertThat(response.body).isEqualTo("")
@@ -168,7 +169,7 @@ class HttpTest {
                 res.write("IGNORE")
             }
             .start().use {
-                val response = "http://localhost:8080/".http.head(params = mapOf("name" to "Bob"))
+                val response = HTTP.head("http://localhost:8080/", params = mapOf("name" to "Bob"))
 
                 assertThat(response.headers["received"]).isEqualTo("Bob")
             }
@@ -179,7 +180,7 @@ class HttpTest {
         HttpServer(8080)
             .put("/") { req, res -> res.write(req.body()) }
             .start().use {
-                val response = "http://localhost:8080/".http.put()
+                val response = HTTP.put("http://localhost:8080/", )
                 assertThat(response.body).isEqualTo("")
             }
     }
@@ -189,7 +190,7 @@ class HttpTest {
         HttpServer(8080)
             .put("/") { req, res -> res.write(req.body()) }
             .start().use {
-                val response = "http://localhost:8080/".http.put(body = "Bob")
+                val response = HTTP.put("http://localhost:8080/", body = "Bob")
                 assertThat(response.body).isEqualTo("Bob")
             }
     }
@@ -199,7 +200,7 @@ class HttpTest {
         HttpServer(8080)
             .put("/") { req, res -> res.write(req.body()) }
             .start().use {
-                val response = "http://localhost:8080/".http.put(data = mapOf("field" to "value"))
+                val response = HTTP.put("http://localhost:8080/", data = mapOf("field" to "value"))
                 assertThat(response.body).isEqualTo("field=value")
             }
     }
@@ -209,7 +210,7 @@ class HttpTest {
         HttpServer(8080)
                 .options("/") { _, _ -> }
                 .start().use {
-                    val response = "http://localhost:8080/".http.options(params = mapOf("name" to "Bob"))
+                    val response = HTTP.options("http://localhost:8080/", params = mapOf("name" to "Bob"))
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("")
                 }
@@ -220,7 +221,7 @@ class HttpTest {
         HttpServer(8080)
                 .get("/") { req, res -> res.write(req.param("name")) }
                 .start().use {
-                    val response = "http://localhost:8080/".http.call(method = "get", params = mapOf("name" to "Bob"))
+                    val response = Http().call("http://localhost:8080/", method = "get", params = mapOf("name" to "Bob"))
                     assertThat(response.body).isEqualTo("Bob")
                 }
     }
@@ -230,7 +231,7 @@ class HttpTest {
         HttpServer(8080)
             .get("/") { _, res -> res.status(OK_200) }
             .start().use {
-                val response = "http://localhost:8080/".http.call()
+                val response = Http("http://localhost:8080/").call()
                 assertThat(response.statusCode).isEqualTo(OK_200)
             }
     }
@@ -242,7 +243,7 @@ class HttpTest {
                     res.write("${req.header("Accept")}|${req.header("User-Agent")}")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/".http.get()
+                    val response = Http("http://localhost:8080").get("/")
 
                     assertThat(response.body).isEqualTo("*/*|daikonweb/topinambur")
                 }
@@ -255,7 +256,7 @@ class HttpTest {
                     res.write("${req.header("Accept")}|${req.header("User-Agent")}")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/".http.get(headers = mapOf("User-Agent" to "Bob"))
+                    val response = HTTP.get("http://localhost:8080/", headers = mapOf("User-Agent" to "Bob"))
 
                     assertThat(response.body).isEqualTo("*/*|Bob")
                 }
@@ -268,7 +269,7 @@ class HttpTest {
                 res.header("Allow", "OPTIONS, GET, POST")
             }
             .start().use {
-                val response = "http://localhost:8080/".http.options()
+                val response = HTTP.options("http://localhost:8080/")
 
                 assertThat(response.headers).containsEntry("Allow", "OPTIONS, GET, POST")
             }
@@ -281,7 +282,7 @@ class HttpTest {
                 res.header("Allow", "OPTIONS, GET, POST")
             }
             .start().use {
-                val response = "http://localhost:8080/".http.options()
+                val response = HTTP.options("http://localhost:8080/", )
 
                 assertThat(response.header("Allow")).isEqualTo("OPTIONS, GET, POST")
             }
@@ -292,7 +293,7 @@ class HttpTest {
         HttpServer(8080)
             .options("/") { _, _ -> }
             .start().use {
-                val response = "http://localhost:8080/".http.options()
+                val response = HTTP.options("http://localhost:8080/", )
 
                 assertThatThrownBy { response.header("Allow") }.isInstanceOf(IllegalStateException::class.java)
             }
@@ -303,7 +304,7 @@ class HttpTest {
         HttpServer(8080)
                 .options("/") { _, _ -> }
                 .start().use {
-                    val response = "http://localhost:8080/".http.options()
+                    val response = HTTP.options("http://localhost:8080/", )
 
                     assertThat(response.header("")).isEqualTo("HTTP/1.1 200 OK")
                 }
@@ -317,7 +318,7 @@ class HttpTest {
                     res.write("Go Away")
                 }
                 .start().use {
-                    val response = "http://localhost:8080/".http.get()
+                    val response = HTTP.get("http://localhost:8080/", )
 
                     assertThat(response.statusCode).isEqualTo(UNAUTHORIZED_401)
                     assertThat(response.body).isEqualTo("Go Away")
@@ -330,7 +331,7 @@ class HttpTest {
             .options("/") { _, _ -> Thread.sleep(200)}
             .start().use {
                 assertThatThrownBy {
-                    "http://localhost:8080/".http.options(timeoutMillis = 100)
+                    HTTP.options("http://localhost:8080/", timeoutMillis = 100)
                 }.isInstanceOf(SocketTimeoutException::class.java)
             }
     }
@@ -340,7 +341,7 @@ class HttpTest {
         HttpServer(8080)
                 .get("/:name") { req, res -> res.write(req.param(":name")) }
                 .start().use {
-                    assertThat("http://localhost:8080/è%24%26".http.get().body).isEqualTo(encode("è$&", UTF_8.name()))
+                    assertThat(HTTP.get("http://localhost:8080/è%24%26").body).isEqualTo(encode("è$&", UTF_8.name()))
                 }
     }
 
@@ -351,7 +352,7 @@ class HttpTest {
             .basicAuth("/")
             .get("/") { _, res -> res.status(OK_200) }
             .start().use {
-                val response = "http://localhost:8080/".http.get(auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
+                val response = HTTP.get("http://localhost:8080/", auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
 
                 assertThat(response.statusCode).isEqualTo(OK_200)
             }
@@ -364,7 +365,7 @@ class HttpTest {
                 res.write(req.header("Authorization"))
             }
             .start().use {
-                val response = "http://localhost:8080/".http.get(auth = Bearer("token"), headers = mapOf("Authorization" to "pippo"))
+                val response = HTTP.get("http://localhost:8080/", auth = Bearer("token"), headers = mapOf("Authorization" to "pippo"))
 
                 assertThat(response.body).isEqualTo("Bearer token")
             }
@@ -388,7 +389,7 @@ class HttpTest {
             .get("/") { _, res -> res.status(OK_200) }
             .start().use {
                 val output = ByteArrayOutputStream()
-                "http://localhost:8080".http(PrintStream(output)).get()
+                Http(log = PrintStream(output)).get("http://localhost:8080")
 
                 assertThat(output.toString()).isEqualTo("curl -v -L -X GET -H 'Accept: */*' -H 'User-Agent: daikonweb/topinambur' 'http://localhost:8080'\n")
             }
