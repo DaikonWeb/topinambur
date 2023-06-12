@@ -18,7 +18,7 @@ class BinaryDownloadTest {
         val byteArray = byteArrayOf(98, 99, 77)
 
         FileMirrorServer().respondWith(byteArray).start().use {
-            val response = "http://localhost:8080/".http.post()
+            val response = "http://localhost:8080/".http.post(body = "")
 
             assertThat(response.bytes).isEqualTo(byteArray)
         }
@@ -28,7 +28,7 @@ class BinaryDownloadTest {
     fun `can upload a file as byte array`() {
         FileMirrorServer().start().use { server ->
             "http://localhost:8080/".http.post(
-                    data = mapOf("file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)))
+                    data = Multipart(mapOf("file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54))))
             )
 
             assertThat(server.receivedFiles().single())

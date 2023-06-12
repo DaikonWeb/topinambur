@@ -50,7 +50,7 @@ class HttpTest {
         HttpServer(8080)
                 .post("/") { _, res -> res.write("post response") }
                 .start().use {
-                    val response = "http://localhost:8080/".http.post()
+                    val response = "http://localhost:8080/".http.post(body = "")
                     assertThat(response.body).isEqualTo("post response")
                 }
     }
@@ -297,9 +297,8 @@ class HttpTest {
             .post("/second") { _, res -> res.status(CREATED_201) }
             .start().use {
                 val localhost = Http("http://localhost:8080")
-
                 assertThat(localhost.get("/first").statusCode).isEqualTo(OK_200)
-                assertThat(localhost.post("/second").statusCode).isEqualTo(CREATED_201)
+                assertThat(localhost.post("/second", "").statusCode).isEqualTo(CREATED_201)
             }
     }
 
