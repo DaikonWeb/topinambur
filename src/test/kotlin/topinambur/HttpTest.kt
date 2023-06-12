@@ -169,6 +169,16 @@ class HttpTest {
     }
 
     @Test
+    fun `call has default get request`() {
+        HttpServer(8080)
+            .get("/") { _, res -> res.status(OK_200) }
+            .start().use {
+                val response = "http://localhost:8080/".http.call()
+                assertThat(response.statusCode).isEqualTo(OK_200)
+            }
+    }
+
+    @Test
     fun `default headers`() {
         HttpServer(8080)
                 .get("/") { req, res ->
