@@ -51,6 +51,16 @@ println(response.statusCode)
 println(response.body)
 ```
 
+## Client Instance with a baseUrl
+```
+val http = Http("https://github.com")
+
+val response = http.get("/DaikonWeb")
+
+println(response.statusCode)
+println(response.body)
+```
+
 ## Enable request logging as Curl
 ```
 HttpClient("https://github.com/DaikonWeb", System.out).get().body
