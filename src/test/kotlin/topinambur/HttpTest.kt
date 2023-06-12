@@ -175,13 +175,33 @@ class HttpTest {
     }
 
     @Test
-    fun `PUT request`() {
+    fun `PUT request without body or data`() {
         HttpServer(8080)
-                .put("/") { req, res -> res.write(req.body()) }
-                .start().use {
-                    val response = "http://localhost:8080/".http.put(body = "Bob")
-                    assertThat(response.body).isEqualTo("Bob")
-                }
+            .put("/") { req, res -> res.write(req.body()) }
+            .start().use {
+                val response = "http://localhost:8080/".http.put()
+                assertThat(response.body).isEqualTo("")
+            }
+    }
+
+    @Test
+    fun `PUT request with body`() {
+        HttpServer(8080)
+            .put("/") { req, res -> res.write(req.body()) }
+            .start().use {
+                val response = "http://localhost:8080/".http.put(body = "Bob")
+                assertThat(response.body).isEqualTo("Bob")
+            }
+    }
+
+    @Test
+    fun `PUT request with data`() {
+        HttpServer(8080)
+            .put("/") { req, res -> res.write(req.body()) }
+            .start().use {
+                val response = "http://localhost:8080/".http.put(data = mapOf("field" to "value"))
+                assertThat(response.body).isEqualTo("field=value")
+            }
     }
 
     @Test
