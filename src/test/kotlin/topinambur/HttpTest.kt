@@ -149,14 +149,29 @@ class HttpTest {
     }
 
     @Test
-    fun `HEAD request`() {
+    fun `HEAD request should ignore the body response`() {
         HttpServer(8080)
-                .head("/") { req, res -> res.write(req.param("name")) }
-                .start().use {
-                    val response = "http://localhost:8080/".http.head(params = mapOf("name" to "Bob"))
-                    assertThat(response.statusCode).isEqualTo(OK_200)
-                    assertThat(response.body).isEqualTo("")
-                }
+            .head("/") { _, res -> res.write("IGNORE") }
+            .start().use {
+                val response = "http://localhost:8080/".http.head()
+
+                assertThat(response.statusCode).isEqualTo(OK_200)
+                assertThat(response.body).isEqualTo("")
+            }
+    }
+
+    @Test
+    fun `HEAD request retrieves the response headers`() {
+        HttpServer(8080)
+            .head("/") { req, res ->
+                res.header("received", req.param("name"))
+                res.write("IGNORE")
+            }
+            .start().use {
+                val response = "http://localhost:8080/".http.head(params = mapOf("name" to "Bob"))
+
+                assertThat(response.headers["received"]).isEqualTo("Bob")
+            }
     }
 
     @Test
