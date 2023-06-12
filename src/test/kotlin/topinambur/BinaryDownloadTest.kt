@@ -28,11 +28,16 @@ class BinaryDownloadTest {
     fun `can upload a file as byte array`() {
         FileMirrorServer().start().use { server ->
             "http://localhost:8080/".http.post(
-                    data = Multipart(mapOf("file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54))))
+                    data = Multipart(mapOf(
+                        "file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
+                        "field" to FieldPart("value")
+                    ))
             )
 
-            assertThat(server.receivedFiles().single())
-                    .isEqualTo(ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)))
+            assertThat(server.receivedFiles()).isEqualTo(listOf(
+                ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
+                ReceivedFile("field", null, "value".toByteArray())
+            ))
         }
     }
 }
@@ -72,7 +77,7 @@ class FileMirrorServlet : HttpServlet() {
         try {
             request?.parts?.forEach {
                 val file = it.inputStream.readAllBytes()
-                receivedFiles.add(ReceivedFile(it.submittedFileName, it.contentType, file))
+                receivedFiles.add(ReceivedFile(it.submittedFileName ?: it.name, it.contentType, file))
             }
         } catch (t: Throwable) {
         }
@@ -87,7 +92,7 @@ class FileMirrorServlet : HttpServlet() {
 
 }
 
-data class ReceivedFile(val name: String, val type: String, val content: ByteArray) {
+data class ReceivedFile(val name: String?, val type: String?, val content: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
