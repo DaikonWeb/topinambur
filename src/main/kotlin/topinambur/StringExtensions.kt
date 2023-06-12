@@ -9,4 +9,4 @@ val String.http: Http
     get() = Http(this, null)
 
 val String.needsBody
-    get() = this == "POST" || this == "PUT"
+    get() = this == "POST" || this == "PUT" || this == "DELETE"

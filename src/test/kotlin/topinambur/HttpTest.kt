@@ -117,13 +117,35 @@ class HttpTest {
     @Test
     fun `DELETE request`() {
         HttpServer(8080)
-                .delete("/") { _, res -> res.write("DELETED") }
-                .start().use {
-                    val response = "http://localhost:8080/".http.delete()
+            .delete("/") { _, res -> res.write("DELETED") }
+            .start().use {
+                val response = "http://localhost:8080/".http.delete()
 
-                    assertThat(response.statusCode).isEqualTo(OK_200)
-                    assertThat(response.body).isEqualTo("DELETED")
-                }
+                assertThat(response.statusCode).isEqualTo(OK_200)
+                assertThat(response.body).isEqualTo("DELETED")
+            }
+    }
+
+    @Test
+    fun `DELETE with body request`() {
+        HttpServer(8080)
+            .delete("/") { req, res -> res.write("DELETE ${req.body()}") }
+            .start().use {
+                val response = "http://localhost:8080/".http.delete(body = "ME")
+
+                assertThat(response.body).isEqualTo("DELETE ME")
+            }
+    }
+
+    @Test
+    fun `DELETE with data request`() {
+        HttpServer(8080)
+            .delete("/") { req, res -> res.write("DELETE ${req.param("text")}") }
+            .start().use {
+                val response = "http://localhost:8080/".http.delete(data = mapOf("text" to "hello"))
+
+                assertThat(response.body).isEqualTo("DELETE hello")
+            }
     }
 
     @Test

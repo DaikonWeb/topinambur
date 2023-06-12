@@ -202,7 +202,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null) {
             readTimeout = timeoutMillis
             headers.forEach { setRequestProperty(it.key, it.value) }
             requestMethod = normalizedMethod
-            if (normalizedMethod.needsBody) {
+            if (normalizedMethod.needsBody && data.isNotEmpty()) {
                 doOutput = true
                 outputStream.write(data)
             }
