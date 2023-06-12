@@ -162,7 +162,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null) {
         }
 
         val bytes = response.body()
-        return ServerResponse(response.responseCode, bytes.toString(UTF_8), bytes, response.headers())
+        return ServerResponse(response.responseCode, bytes, response.headers())
     }
 
     private fun prepareRequest(
