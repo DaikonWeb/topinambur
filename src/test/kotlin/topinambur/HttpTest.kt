@@ -291,6 +291,19 @@ class HttpTest {
     }
 
     @Test
+    fun `bearer auth overrides headers`() {
+        HttpServer(8080)
+            .get("/") { req, res ->
+                res.write(req.header("Authorization"))
+            }
+            .start().use {
+                val response = "http://localhost:8080/".http.get(auth = Bearer("token"), headers = mapOf("Authorization" to "pippo"))
+
+                assertThat(response.body).isEqualTo("Bearer token")
+            }
+    }
+
+    @Test
     fun `two request with same baseUrl using the same client`() {
         HttpServer(8080)
             .get("/first") { _, res -> res.status(OK_200) }
