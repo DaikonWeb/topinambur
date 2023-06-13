@@ -65,6 +65,6 @@ println(response.body)
 
 ## Enable request logging as Curl
 ```
-val http = HttpClient(log = System.out)
+val http = Http(log = System.out)
 http.get("https://github.com/DaikonWeb").body
 ```
