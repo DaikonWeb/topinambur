@@ -346,13 +346,28 @@ class HttpTest {
     }
 
     @Test
-    fun `basic auth overrides headers`() {
+    fun `basic auth from http constructor overrides headers`() {
         HttpServer(8080)
             .basicAuthUser("usr", "pwd")
             .basicAuth("/")
             .get("/") { _, res -> res.status(OK_200) }
             .start().use {
-                val response = HTTP.get("http://localhost:8080/", auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
+                val http = Http(auth = Basic("usr", "pwd"))
+                val response = http.get("http://localhost:8080/", headers = mapOf("Authorization" to "pippo"))
+
+                assertThat(response.statusCode).isEqualTo(OK_200)
+            }
+    }
+
+    @Test
+    fun `basic auth overrides headers and baseAuth`() {
+        HttpServer(8080)
+            .basicAuthUser("usr", "pwd")
+            .basicAuth("/")
+            .get("/") { _, res -> res.status(OK_200) }
+            .start().use {
+                val http = Http(auth = Basic("wrong", "wrong"))
+                val response = http.get("http://localhost:8080/", auth = Basic("usr", "pwd"), headers = mapOf("Authorization" to "pippo"))
 
                 assertThat(response.statusCode).isEqualTo(OK_200)
             }

@@ -10,9 +10,10 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
-class Http(private val baseUrl: String = "", log: PrintStream? = null) {
+class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: AuthorizationStrategy = None()) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
+    private val baseAuth = auth
 
     fun head(
         url: String = "",
@@ -158,7 +159,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null) {
         followRedirects: Boolean = true,
         timeoutMillis: Int = 30000
     ): ServerResponse {
-        return doRequest(build(url), method, params, data, headers, auth, followRedirects, timeoutMillis)
+        return doRequest(build(url), method, params, data, headers, build(auth), followRedirects, timeoutMillis)
     }
 
     private fun doRequest(
@@ -247,6 +248,10 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null) {
 
     private fun build(url: String): String {
         return if (baseUrl.isEmpty()) url else "$baseUrl$url"
+    }
+
+    private fun build(auth: AuthorizationStrategy): AuthorizationStrategy {
+        return if (auth is None) baseAuth else auth
     }
 
     private fun urlEncode(params: Map<String, String>): String {
