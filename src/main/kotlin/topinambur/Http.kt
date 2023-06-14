@@ -7,6 +7,7 @@ import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.*
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
@@ -200,7 +201,7 @@ class Http(
         followRedirects: Boolean,
         timeoutMillis: Int
     ): HttpURLConnection {
-        val normalizedMethod = method.toUpperCase()
+        val normalizedMethod = method.uppercase()
         val encodedUrl = URI(url).toASCIIString()
 
         curl.print(encodedUrl, normalizedMethod, headers, data.toString(UTF_8), followRedirects)
@@ -247,7 +248,7 @@ class Http(
                 errorStream
             }
 
-            return when (headerFields["Content-Encoding"]?.first()?.toLowerCase()) {
+            return when (headerFields["Content-Encoding"]?.first()?.lowercase()) {
                 "gzip" -> GZIPInputStream(stream)
                 "deflate" -> InflaterInputStream(stream)
                 else -> stream
