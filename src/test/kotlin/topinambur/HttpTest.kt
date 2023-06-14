@@ -272,6 +272,20 @@ class HttpTest {
     }
 
     @Test
+    fun `overrides the default headers from the Http constructor`() {
+        HttpServer(8080)
+            .get("/") { req, res ->
+                res.write("${req.header("Accept")}|${req.header("User-Agent")}")
+            }
+            .start().use {
+                val http = Http(headers = mapOf("Accept" to "text/plain"))
+                val response = http.get("http://localhost:8080/")
+
+                assertThat(response.body).isEqualTo("text/plain|daikonweb/topinambur")
+            }
+    }
+
+    @Test
     fun `responds with headers`() {
         HttpServer(8080)
             .options("/") { _, res ->

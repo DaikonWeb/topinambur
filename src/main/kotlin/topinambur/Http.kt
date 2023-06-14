@@ -10,9 +10,16 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
-class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: AuthorizationStrategy = None(), followRedirects: Boolean = true) {
+class Http(
+    private val baseUrl: String = "",
+    log: PrintStream? = null,
+    headers: Map<String, String> = emptyMap(),
+    auth: AuthorizationStrategy = None(),
+    followRedirects: Boolean = true
+) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
+    private val baseHeaders = headers
     private val baseAuth = auth
     private val baseFollowRedirects = followRedirects
 
@@ -160,7 +167,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
-        return doRequest(build(url), method, params, data, headers, build(auth), followRedirects, timeoutMillis)
+        return doRequest(build(url), method, params, data, build(headers, auth), followRedirects, timeoutMillis)
     }
 
     private fun doRequest(
@@ -169,16 +176,14 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         params: Map<String, String>,
         data: ByteArray,
         headers: Map<String, String>,
-        auth: AuthorizationStrategy,
         followRedirects: Boolean,
         timeoutMillis: Int
     ): ServerResponse {
-        val allHeaders = defaultHeaders + headers + auth.toHeader()
         val urlWithParams = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
-        val response = prepareRequest(urlWithParams, method, allHeaders, data, followRedirects, timeoutMillis)
+        val response = prepareRequest(urlWithParams, method, headers, data, followRedirects, timeoutMillis)
 
         if (followRedirects && response.isRedirectToHttps()) {
-            return doRequest(response.location(), method, params, data, allHeaders, auth, true, timeoutMillis)
+            return doRequest(response.location(), method, params, data, headers, true, timeoutMillis)
         }
 
         val bytes = response.body()
@@ -249,6 +254,10 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
 
     private fun build(url: String): String {
         return if (baseUrl.isEmpty()) url else "$baseUrl$url"
+    }
+
+    private fun build(headers: Map<String, String>, auth: AuthorizationStrategy): Map<String, String> {
+        return defaultHeaders + baseHeaders + headers + build(auth).toHeader()
     }
 
     private fun build(auth: AuthorizationStrategy): AuthorizationStrategy {
