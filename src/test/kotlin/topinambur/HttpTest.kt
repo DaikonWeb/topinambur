@@ -79,9 +79,18 @@ class HttpTest {
 
     @Test
     fun `follow redirect from HTTP to HTTPS`() {
-        val response = HTTP.get("http://www.trovaprezzi.it/", )
+        val http = Http(followRedirects = false)
+        val response = http.get("http://www.trovaprezzi.it/", followRedirects = true)
 
         assertThat(response.statusCode).isEqualTo(OK_200)
+    }
+
+    @Test
+    fun `do not follow redirect from HTTP to HTTPS`() {
+        val http = Http(followRedirects = false)
+        val response = http.get("http://www.trovaprezzi.it/")
+
+        assertThat(response.statusCode).isEqualTo(MOVED_PERMANENTLY_301)
     }
 
     @Test
@@ -94,7 +103,7 @@ class HttpTest {
                     res.write("well done")
                 }
                 .start().use {
-                    val response = HTTP.get("http://localhost:8080/bar", )
+                    val response = HTTP.get("http://localhost:8080/bar")
                     assertThat(response.statusCode).isEqualTo(OK_200)
                     assertThat(response.body).isEqualTo("well done")
                 }

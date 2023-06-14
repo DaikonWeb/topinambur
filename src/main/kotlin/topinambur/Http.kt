@@ -10,17 +10,18 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
-class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: AuthorizationStrategy = None()) {
+class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: AuthorizationStrategy = None(), followRedirects: Boolean = true) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
     private val baseAuth = auth
+    private val baseFollowRedirects = followRedirects
 
     fun head(
         url: String = "",
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "HEAD", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -31,7 +32,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "OPTIONS", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -42,7 +43,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         params: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "GET", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -53,7 +54,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         data: Multipart,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         val headersWithType = headers + mapOf("Content-Type" to data.contentType)
@@ -65,7 +66,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         data: Map<String, String>,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         val body = urlEncode(data)
@@ -77,7 +78,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         body: String,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "POST", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -87,7 +88,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         url: String = "",
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "PUT", emptyMap(), "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -98,7 +99,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         data: Map<String, String>,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         val body = urlEncode(data)
@@ -110,7 +111,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         body: String,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "PUT", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -120,7 +121,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         url: String = "",
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "DELETE", emptyMap(), "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -131,7 +132,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         data: Map<String, String>,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         val body = urlEncode(data)
@@ -143,7 +144,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         body: String,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return call(url, "DELETE", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -156,7 +157,7 @@ class Http(private val baseUrl: String = "", log: PrintStream? = null, auth: Aut
         data: ByteArray = "".toByteArray(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = true,
+        followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = 30000
     ): ServerResponse {
         return doRequest(build(url), method, params, data, headers, build(auth), followRedirects, timeoutMillis)
