@@ -15,13 +15,15 @@ class Http(
     log: PrintStream? = null,
     headers: Map<String, String> = emptyMap(),
     auth: AuthorizationStrategy = None(),
-    followRedirects: Boolean = true
+    followRedirects: Boolean = true,
+    timeoutMillis: Int = 30000
 ) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
     private val baseHeaders = headers
     private val baseAuth = auth
     private val baseFollowRedirects = followRedirects
+    private val baseTimeoutMillis = timeoutMillis
 
     fun head(
         url: String = "",
@@ -29,7 +31,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "HEAD", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -40,7 +42,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "OPTIONS", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -51,7 +53,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "GET", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -62,7 +64,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         val headersWithType = headers + mapOf("Content-Type" to data.contentType)
         return call(url, "POST", emptyMap(), data.body(), headersWithType, auth, followRedirects, timeoutMillis)
@@ -74,7 +76,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         val body = urlEncode(data)
         return call(url, "POST", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -86,7 +88,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "POST", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -96,7 +98,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "PUT", emptyMap(), "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -107,7 +109,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         val body = urlEncode(data)
         return call(url, "PUT", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -119,7 +121,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "PUT", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -129,7 +131,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "DELETE", emptyMap(), "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -140,7 +142,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         val body = urlEncode(data)
         return call(url, "DELETE", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
@@ -152,7 +154,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return call(url, "DELETE", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
@@ -165,7 +167,7 @@ class Http(
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = 30000
+        timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
         return doRequest(build(url), method, params, data, build(headers, auth), followRedirects, timeoutMillis)
     }

@@ -351,10 +351,22 @@ class HttpTest {
     @Test
     fun `response timeout`() {
         HttpServer(8080)
-            .options("/") { _, _ -> Thread.sleep(200)}
+            .options("/") { _, _ -> Thread.sleep(100)}
             .start().use {
                 assertThatThrownBy {
-                    HTTP.options("http://localhost:8080/", timeoutMillis = 100)
+                    HTTP.options("http://localhost:8080/", timeoutMillis = 50)
+                }.isInstanceOf(SocketTimeoutException::class.java)
+            }
+    }
+
+    @Test
+    fun `response timeout configured from the http constructor`() {
+        HttpServer(8080)
+            .options("/") { _, _ -> Thread.sleep(100)}
+            .start().use {
+                assertThatThrownBy {
+                    val http = Http(timeoutMillis = 50)
+                    http.options("http://localhost:8080/")
                 }.isInstanceOf(SocketTimeoutException::class.java)
             }
     }
