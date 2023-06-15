@@ -1,15 +1,8 @@
 package topinambur
 
-import java.io.InputStream
 import java.io.PrintStream
-import java.net.HttpURLConnection
-import java.net.URI
-import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.*
-import java.util.zip.GZIPInputStream
-import java.util.zip.InflaterInputStream
 
 class Http(
     private val baseUrl: String = "",
@@ -170,93 +163,16 @@ class Http(
         followRedirects: Boolean = baseFollowRedirects,
         timeoutMillis: Int = baseTimeoutMillis
     ): ServerResponse {
-        return doRequest(build(url), method, params, data, build(headers, auth), followRedirects, timeoutMillis)
-    }
-
-    private fun doRequest(
-        url: String,
-        method: String,
-        params: Map<String, String>,
-        data: ByteArray,
-        headers: Map<String, String>,
-        followRedirects: Boolean,
-        timeoutMillis: Int
-    ): ServerResponse {
-        val urlWithParams = if (params.isEmpty()) url else "$url?${urlEncode(params)}"
-        val response = prepareRequest(urlWithParams, method, headers, data, followRedirects, timeoutMillis)
-
-        if (followRedirects && response.isRedirectToHttps()) {
-            return doRequest(response.location(), method, params, data, headers, true, timeoutMillis)
-        }
-
-        val bytes = response.body()
-        return ServerResponse(response.responseCode, bytes, response.headers())
-    }
-
-    private fun prepareRequest(
-        url: String,
-        method: String,
-        headers: Map<String, String>,
-        data: ByteArray,
-        followRedirects: Boolean,
-        timeoutMillis: Int
-    ): HttpURLConnection {
+        val encodedUrl = build(url, params)
         val normalizedMethod = method.uppercase()
-        val encodedUrl = URI(url).toASCIIString()
-
-        curl.print(encodedUrl, normalizedMethod, headers, data.toString(UTF_8), followRedirects)
-
-        return (URL(encodedUrl).openConnection() as HttpURLConnection).apply {
-            connectTimeout = timeoutMillis
-            readTimeout = timeoutMillis
-            headers.forEach { setRequestProperty(it.key, it.value) }
-            requestMethod = normalizedMethod
-            if (normalizedMethod.needsBody && data.isNotEmpty()) {
-                doOutput = true
-                outputStream.write(data)
-            }
-            doInput
-            instanceFollowRedirects = followRedirects
-        }
+        val allHeaders = build(headers, auth)
+        curl.print(encodedUrl, normalizedMethod, allHeaders, data.toString(UTF_8), followRedirects)
+        return Request.call(encodedUrl, normalizedMethod, data, allHeaders, followRedirects, timeoutMillis)
     }
 
-    private fun HttpURLConnection.headers() =
-        headerFields.map { entry -> (entry.key ?: "") to entry.value.first() }.toMap()
-
-    private fun HttpURLConnection.location() = getHeaderField("Location")
-
-    private fun HttpURLConnection.isRedirectToHttps(): Boolean {
-        return location() != null &&
-                location().startsWith("https", true) &&
-                responseCode >= 300 &&
-                responseCode <= 399
-    }
-
-    private fun HttpURLConnection.body(): ByteArray {
-        return try {
-            contentStream.use { it.readBytes() }
-        } catch (t: Throwable) {
-            ByteArray(0)
-        }
-    }
-
-    private val HttpURLConnection.contentStream: InputStream
-        get() {
-            val stream = try {
-                inputStream
-            } catch (t: Throwable) {
-                errorStream
-            }
-
-            return when (headerFields["Content-Encoding"]?.first()?.lowercase()) {
-                "gzip" -> GZIPInputStream(stream)
-                "deflate" -> InflaterInputStream(stream)
-                else -> stream
-            }
-        }
-
-    private fun build(url: String): String {
-        return if (baseUrl.isEmpty()) url else "$baseUrl$url"
+    private fun build(url: String, params: Map<String, String>): String {
+        val encodedParams = if (params.isNotEmpty()) "?${urlEncode(params)}" else ""
+        return if (baseUrl.isEmpty()) "$url$encodedParams" else "$baseUrl$url$encodedParams"
     }
 
     private fun build(headers: Map<String, String>, auth: AuthorizationStrategy): Map<String, String> {
