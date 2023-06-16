@@ -1,6 +1,5 @@
 package topinambur
 
-import java.io.PrintStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 
@@ -10,9 +9,8 @@ class Http(
     auth: AuthorizationStrategy = None(),
     followRedirects: Boolean = true,
     timeoutMillis: Int = 30000,
-    log: PrintStream? = null
+    private val printer: Printer? = null
 ) {
-    private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
     private val baseHeaders = headers
     private val baseAuth = auth
@@ -166,7 +164,7 @@ class Http(
         val encodedUrl = build(url, params)
         val normalizedMethod = method.uppercase()
         val allHeaders = build(headers, auth)
-        curl.print(encodedUrl, normalizedMethod, allHeaders, data.toString(UTF_8), followRedirects, timeoutMillis)
+        printer?.print(encodedUrl, normalizedMethod, allHeaders, data.toString(UTF_8), followRedirects, timeoutMillis)
         return Request.call(encodedUrl, normalizedMethod, data, allHeaders, followRedirects, timeoutMillis)
     }
 

@@ -6,20 +6,7 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 
 
-
-
-interface Printer {
-    fun print(
-        url: String,
-        method: String,
-        headers: Map<String, String>,
-        data: String,
-        followRedirects: Boolean,
-        timeoutMillis: Int
-    )
-}
-
-class Curl(private val log: PrintStream?) : Printer {
+class CurlPrinter(private val log: PrintStream?) : Printer {
     override fun print(
         url: String,
         method: String,

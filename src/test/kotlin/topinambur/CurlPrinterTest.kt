@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
-class CurlTest {
+class CurlPrinterTest {
     private val output = ByteArrayOutputStream()
 
     @Test
     fun `post as Curl`() {
-        Curl(PrintStream(output)).print(
+        CurlPrinter(PrintStream(output)).print(
             url = "url",
             method = "POST",
             data = "name=Bob&surname=Or",
@@ -24,7 +24,7 @@ class CurlTest {
 
     @Test
     fun `get as Curl`() {
-        Curl(PrintStream(output)).print(
+        CurlPrinter(PrintStream(output)).print(
             url = "url?name=Bob&surname=Or",
             method = "GET",
             data = "",
@@ -38,7 +38,7 @@ class CurlTest {
 
     @Test
     fun `get as Curl without headers`() {
-        Curl(PrintStream(output)).print(
+        CurlPrinter(PrintStream(output)).print(
             url = "url",
             method = "GET",
             data = "",
@@ -52,7 +52,7 @@ class CurlTest {
 
     @Test
     fun `backslashes quotes`() {
-        Curl(PrintStream(output)).print(
+        CurlPrinter(PrintStream(output)).print(
             url = "url",
             method = "POST",
             data = "string 'with' single quotes",
@@ -68,7 +68,7 @@ class CurlTest {
 
     @Test
     fun `timeout with seconds precision`() {
-        Curl(PrintStream(output)).print(
+        CurlPrinter(PrintStream(output)).print(
             url = "url",
             method = "GET",
             data = "",
@@ -82,7 +82,7 @@ class CurlTest {
 
     @Test
     fun `timeout with decimal precision`() {
-        Curl(PrintStream(output)).print(
+        CurlPrinter(PrintStream(output)).print(
             url = "url",
             method = "GET",
             data = "",
