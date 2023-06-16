@@ -11,54 +11,86 @@ class CurlTest {
     @Test
     fun `post as Curl`() {
         Curl(PrintStream(output)).print(
-                url = "url",
-                method = "POST",
-                data = "name=Bob&surname=Or",
-                headers = mapOf("foo" to "bar", "baz" to "foo"),
-                followRedirects = true
+            url = "url",
+            method = "POST",
+            data = "name=Bob&surname=Or",
+            headers = mapOf("foo" to "bar", "baz" to "foo"),
+            followRedirects = true,
+            timeoutMillis = 5000
         )
 
-        assertThat(output.toString()).isEqualTo("curl -v -L -X POST -d 'name=Bob&surname=Or' -H 'foo: bar' -H 'baz: foo' 'url'\n")
+        assertThat(output.toString()).isEqualTo("curl -v -L -m 5 -X POST -d 'name=Bob&surname=Or' -H 'foo: bar' -H 'baz: foo' 'url'\n")
     }
 
     @Test
     fun `get as Curl`() {
         Curl(PrintStream(output)).print(
-                url = "url?name=Bob&surname=Or",
-                method = "GET",
-                data = "",
-                headers = mapOf("foo" to "bar", "baz" to "foo"),
-                followRedirects = false
+            url = "url?name=Bob&surname=Or",
+            method = "GET",
+            data = "",
+            headers = mapOf("foo" to "bar", "baz" to "foo"),
+            followRedirects = false,
+            timeoutMillis = 5000
         )
 
-        assertThat(output.toString()).isEqualTo("curl -v -X GET -H 'foo: bar' -H 'baz: foo' 'url?name=Bob&surname=Or'\n")
+        assertThat(output.toString()).isEqualTo("curl -v -m 5 -X GET -H 'foo: bar' -H 'baz: foo' 'url?name=Bob&surname=Or'\n")
     }
 
     @Test
     fun `get as Curl without headers`() {
         Curl(PrintStream(output)).print(
-                url = "url",
-                method = "GET",
-                data = "",
-                headers = mapOf(),
-                followRedirects = false
+            url = "url",
+            method = "GET",
+            data = "",
+            headers = mapOf(),
+            followRedirects = false,
+            timeoutMillis = 5000
         )
 
-        assertThat(output.toString()).isEqualTo("curl -v -X GET 'url'\n")
+        assertThat(output.toString()).isEqualTo("curl -v -m 5 -X GET 'url'\n")
     }
 
     @Test
     fun `backslashes quotes`() {
         Curl(PrintStream(output)).print(
-                url = "url",
-                method = "POST",
-                data = "string 'with' single quotes",
-                headers = mapOf("foo" to "b'a'r", "baz" to "foo"),
-                followRedirects = true
+            url = "url",
+            method = "POST",
+            data = "string 'with' single quotes",
+            headers = mapOf("foo" to "b'a'r", "baz" to "foo"),
+            followRedirects = true,
+            timeoutMillis = 5000
         )
 
         assertThat(output.toString())
-                .isEqualTo("""curl -v -L -X POST -d 'string \'with\' single quotes' -H 'foo: b\'a\'r' -H 'baz: foo' 'url'
+            .isEqualTo("""curl -v -L -m 5 -X POST -d 'string \'with\' single quotes' -H 'foo: b\'a\'r' -H 'baz: foo' 'url'
                     |""".trimMargin())
+    }
+
+    @Test
+    fun `timeout with seconds precision`() {
+        Curl(PrintStream(output)).print(
+            url = "url",
+            method = "GET",
+            data = "",
+            headers = mapOf(),
+            followRedirects = false,
+            timeoutMillis = 5000
+        )
+
+        assertThat(output.toString()).isEqualTo("curl -v -m 5 -X GET 'url'\n")
+    }
+
+    @Test
+    fun `timeout with decimal precision`() {
+        Curl(PrintStream(output)).print(
+            url = "url",
+            method = "GET",
+            data = "",
+            headers = mapOf(),
+            followRedirects = false,
+            timeoutMillis = 1234
+        )
+
+        assertThat(output.toString()).isEqualTo("curl -v -m 1.23 -X GET 'url'\n")
     }
 }

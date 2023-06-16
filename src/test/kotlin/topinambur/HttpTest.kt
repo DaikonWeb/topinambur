@@ -441,7 +441,7 @@ class HttpTest {
                 val output = ByteArrayOutputStream()
                 Http(log = PrintStream(output)).get("http://localhost:8080")
 
-                assertThat(output.toString()).isEqualTo("curl -v -L -X GET -H 'Accept: */*' -H 'User-Agent: daikonweb/topinambur' 'http://localhost:8080'\n")
+                assertThat(output.toString()).isEqualTo("curl -v -L -m 30 -X GET -H 'Accept: */*' -H 'User-Agent: daikonweb/topinambur' 'http://localhost:8080'\n")
             }
     }
 }

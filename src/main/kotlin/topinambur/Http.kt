@@ -6,11 +6,11 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class Http(
     private val baseUrl: String = "",
-    log: PrintStream? = null,
     headers: Map<String, String> = emptyMap(),
     auth: AuthorizationStrategy = None(),
     followRedirects: Boolean = true,
-    timeoutMillis: Int = 30000
+    timeoutMillis: Int = 30000,
+    log: PrintStream? = null
 ) {
     private val curl = Curl(log)
     private val defaultHeaders = mapOf("Accept" to "*/*", "User-Agent" to "daikonweb/topinambur")
@@ -166,7 +166,7 @@ class Http(
         val encodedUrl = build(url, params)
         val normalizedMethod = method.uppercase()
         val allHeaders = build(headers, auth)
-        curl.print(encodedUrl, normalizedMethod, allHeaders, data.toString(UTF_8), followRedirects)
+        curl.print(encodedUrl, normalizedMethod, allHeaders, data.toString(UTF_8), followRedirects, timeoutMillis)
         return Request.call(encodedUrl, normalizedMethod, data, allHeaders, followRedirects, timeoutMillis)
     }
 
