@@ -1,5 +1,6 @@
 package topinambur
 
+import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 
@@ -169,8 +170,11 @@ class Http(
     }
 
     private fun build(url: String, params: Map<String, String>): String {
-        val encodedParams = if (params.isNotEmpty()) "?${urlEncode(params)}" else ""
-        return if (baseUrl.isEmpty()) "$url$encodedParams" else "$baseUrl$url$encodedParams"
+        val fullUrl = if (baseUrl.isEmpty()) url else "$baseUrl$url"
+        val queryString = URL(fullUrl).query ?: ""
+        val fullUrlNoParams = fullUrl.replace("?$queryString", "")
+        val encodedParams = encodeQuery(decodeQuery(queryString) + params)
+        return "$fullUrlNoParams$encodedParams"
     }
 
     private fun build(headers: Map<String, String>, auth: AuthorizationStrategy): Map<String, String> {
@@ -179,6 +183,19 @@ class Http(
 
     private fun build(auth: AuthorizationStrategy): AuthorizationStrategy {
         return if (auth is None) baseAuth else auth
+    }
+
+    private fun decodeQuery(query: String): Map<String, String> {
+        return query.split('&').mapNotNull {
+            val parts = it.split('=')
+            val name = parts.first()
+            val value = parts.drop(1).firstOrNull() ?: ""
+            if (name == "") null else Pair(name, value)
+        }.toMap()
+    }
+
+    private fun encodeQuery(params: Map<String, String>): String {
+        return if (params.isNotEmpty()) "?${urlEncode(params)}" else ""
     }
 
     private fun urlEncode(params: Map<String, String>): String {

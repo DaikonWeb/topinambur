@@ -445,4 +445,36 @@ class HttpTest {
                 assertThat(output.toString()).isEqualTo("curl -v -L -m 30 -X GET -H 'Accept: */*' -H 'User-Agent: daikonweb/topinambur' 'http://localhost:8080'\n")
             }
     }
+
+    @Test
+    fun `test params override query string`() {
+        HttpServer(8080)
+            .get("/") { req, res -> res.write(req.param("name")) }
+            .start().use {
+                val resp = HTTP.get("http://localhost:8080?one=1&name=overwritten", params = mapOf( "name" to "with some spaces"))
+
+                assertThat(resp.body).isEqualTo("with some spaces")
+            }
+    }
+    @Test
+    fun `test spaces inside query-string should be encoded`() {
+        HttpServer(8080)
+            .get("/") { req, res -> res.write(req.param("name")) }
+            .start().use {
+                val resp = HTTP.get("http://localhost:8080?name=with spaces")
+
+                assertThat(resp.body).isEqualTo("with spaces")
+            }
+    }
+
+    @Test
+    fun `test invalid query-string should be ignored`() {
+        HttpServer(8080)
+            .get("/") { req, res -> res.write(req.param("name")) }
+            .start().use {
+                val resp = HTTP.get("http://localhost:8080?=", params = mapOf( "name" to "value"))
+
+                assertThat(resp.body).isEqualTo("value")
+            }
+    }
 }
