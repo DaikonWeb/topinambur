@@ -4,7 +4,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets.UTF_8
 
-class Http(
+class Http @JvmOverloads constructor(
     private val baseUrl: String = "",
     headers: Map<String, String> = emptyMap(),
     auth: AuthorizationStrategy = None(),
@@ -18,6 +18,7 @@ class Http(
     private val baseFollowRedirects = followRedirects
     private val baseTimeoutMillis = timeoutMillis
 
+    @JvmOverloads
     fun head(
         url: String = "",
         params: Map<String, String> = emptyMap(),
@@ -29,6 +30,7 @@ class Http(
         return call(url, "HEAD", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun options(
         url: String = "",
         params: Map<String, String> = emptyMap(),
@@ -40,6 +42,7 @@ class Http(
         return call(url, "OPTIONS", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun get(
         url: String = "",
         params: Map<String, String> = emptyMap(),
@@ -51,8 +54,9 @@ class Http(
         return call(url, "GET", params, "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun post(
-        url: String = "",
+        url: String,
         data: Multipart,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
@@ -63,9 +67,10 @@ class Http(
         return call(url, "POST", emptyMap(), data.body(), headersWithType, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun post(
         url: String = "",
-        data: Map<String, String>,
+        data: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
@@ -75,8 +80,9 @@ class Http(
         return call(url, "POST", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun post(
-        url: String = "",
+        url: String,
         body: String,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
@@ -86,19 +92,10 @@ class Http(
         return call(url, "POST", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun put(
         url: String = "",
-        headers: Map<String, String> = emptyMap(),
-        auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = baseTimeoutMillis
-    ): ServerResponse {
-        return call(url, "PUT", emptyMap(), "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
-    }
-
-    fun put(
-        url: String = "",
-        data: Map<String, String>,
+        data: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
@@ -108,8 +105,9 @@ class Http(
         return call(url, "PUT", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun put(
-        url: String = "",
+        url: String,
         body: String,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
@@ -119,19 +117,10 @@ class Http(
         return call(url, "PUT", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun delete(
         url: String = "",
-        headers: Map<String, String> = emptyMap(),
-        auth: AuthorizationStrategy = None(),
-        followRedirects: Boolean = baseFollowRedirects,
-        timeoutMillis: Int = baseTimeoutMillis
-    ): ServerResponse {
-        return call(url, "DELETE", emptyMap(), "".toByteArray(), headers, auth, followRedirects, timeoutMillis)
-    }
-
-    fun delete(
-        url: String = "",
-        data: Map<String, String>,
+        data: Map<String, String> = emptyMap(),
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
         followRedirects: Boolean = baseFollowRedirects,
@@ -141,8 +130,9 @@ class Http(
         return call(url, "DELETE", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun delete(
-        url: String = "",
+        url: String,
         body: String,
         headers: Map<String, String> = emptyMap(),
         auth: AuthorizationStrategy = None(),
@@ -152,8 +142,9 @@ class Http(
         return call(url, "DELETE", emptyMap(), body.toByteArray(), headers, auth, followRedirects, timeoutMillis)
     }
 
+    @JvmOverloads
     fun call(
-        url: String = "",
+        url: String = "/",
         method: String = "GET",
         params: Map<String, String> = emptyMap(),
         data: ByteArray = "".toByteArray(),
@@ -170,7 +161,7 @@ class Http(
     }
 
     private fun build(url: String, params: Map<String, String>): String {
-        val fullUrl = if (baseUrl.isEmpty()) url else "$baseUrl$url"
+        val fullUrl = if (baseUrl.isEmpty()) url else "${baseUrl.trimEnd('/')}/${url.trimStart('/')}"
         val queryString = URL(fullUrl).query ?: ""
         val fullUrlNoParams = fullUrl.replace("?$queryString", "")
         val encodedParams = encodeQuery(decodeQuery(queryString) + params)
