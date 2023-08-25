@@ -196,6 +196,7 @@ class Http @JvmOverloads constructor(
     }
 
     companion object {
+        @JvmField
         val HTTP: Http = Http()
     }
 }
