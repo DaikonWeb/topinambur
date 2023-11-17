@@ -75,3 +75,18 @@ import topinambur.Http
 val curlPrinter = CurlPrinter(System.out)
 Http(printer = curlPrinter).get("http://localhost:8080")
 ```
+
+# Multipart data post request
+You can also make a post request to send a multipart data file along with some fields.
+
+```
+import topinambur.Http.Companion.HTTP
+
+HTTP.post(
+    url = "http://localhost:8080/",
+    body = Multipart(
+        FilePart(field = "file", name = "a.txt", type = "plain/text", content = byteArrayOf(112, 124)),
+        FieldPart(field = "field", value = "value")
+    )
+)
+```

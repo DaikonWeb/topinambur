@@ -31,16 +31,14 @@ class BinaryDownloadTest {
             HTTP.post(
                 url = "http://localhost:8080/",
                 body = Multipart(
-                    mapOf(
-                        "file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
-                        "field" to FieldPart("value")
-                    )
+                    FilePart(field = "file", name = "a.txt", type = "plain/text", content = byteArrayOf(112, 124)),
+                    FieldPart(field = "field", value = "value")
                 )
             )
 
             assertThat(server.receivedFiles()).isEqualTo(
                 listOf(
-                    ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
+                    ReceivedFile("a.txt", "plain/text", byteArrayOf(112, 124)),
                     ReceivedFile("field", null, "value".toByteArray())
                 )
             )
