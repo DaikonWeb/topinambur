@@ -6,7 +6,7 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 
 
-class CurlPrinter(private val log: PrintStream?) : Printer {
+class CurlPrinter(private val log: PrintStream) : Printer {
     override fun print(
         url: String,
         method: String,
@@ -15,16 +15,14 @@ class CurlPrinter(private val log: PrintStream?) : Printer {
         followRedirects: Boolean,
         timeoutMillis: Int
     ) {
-        if (log != null) {
-            val headersString =
-                if (headers.isEmpty()) "" else headers.map { entry -> "'${escape(entry.key)}: ${escape(entry.value)}'" }
-                    .joinToString(" -H ", "-H ", " ")
-            val follow = if (followRedirects) "-L " else ""
-            val maxTime = "-m ${timeoutMillis.toSeconds().format()} "
-            val printData = if (method.needsBody) "-d '${escape(data)}' " else ""
+        val headersString =
+            if (headers.isEmpty()) "" else headers.map { entry -> "'${escape(entry.key)}: ${escape(entry.value)}'" }
+                .joinToString(" -H ", "-H ", " ")
+        val follow = if (followRedirects) "-L " else ""
+        val maxTime = "-m ${timeoutMillis.toSeconds().format()} "
+        val printData = if (method.needsBody) "-d '${escape(data)}' " else ""
 
-            log.println("curl -v $follow$maxTime-X $method ${printData}$headersString'$url'")
-        }
+        log.println("curl -v $follow$maxTime-X $method ${printData}$headersString'$url'")
     }
 
     private fun Int.toSeconds(): BigDecimal {
