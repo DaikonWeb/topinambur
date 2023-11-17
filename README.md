@@ -147,7 +147,7 @@ HTTP.post(
 
 
 # Autorize a request
-You can also make a post request to send a multipart data file along with some fields.
+You can also make an authorized request with base and bearer authentication.
 
 You can also implement your own auth method implementing the `AuthorizationStrategy` interface.
 
