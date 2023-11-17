@@ -21,7 +21,7 @@ repositories {
 
 - Add the dependency
 ```
-implementation 'com.github.DaikonWeb:topinambur:1.12.0'
+implementation 'com.github.DaikonWeb:topinambur:1.13.0'
 ```
 
 ### Maven
@@ -39,7 +39,7 @@ implementation 'com.github.DaikonWeb:topinambur:1.12.0'
 <dependency>
     <groupId>com.github.DaikonWeb</groupId>
     <artifactId>topinambur</artifactId>
-    <version>1.12.0</version>
+    <version>1.13.0</version>
 </dependency>
 ```
 
