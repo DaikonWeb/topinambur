@@ -30,7 +30,7 @@ class BinaryDownloadTest {
         FileMirrorServer().start().use { server ->
             HTTP.post(
                 url = "http://localhost:8080/",
-                data = Multipart(
+                body = Multipart(
                     mapOf(
                         "file" to FilePart("a.txt", "plain/text", byteArrayOf(112, 124, 111, 54)),
                         "field" to FieldPart("value")
