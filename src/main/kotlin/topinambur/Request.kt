@@ -7,7 +7,7 @@ import java.net.URL
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 
-object Request {
+internal object Request {
     fun call(
         url: String,
         method: String,
