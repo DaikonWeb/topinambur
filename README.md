@@ -55,6 +55,8 @@ println(response.body)
 
 ## Client Instance with a baseUrl
 ```
+import topinambur.Http
+
 val http = Http("https://github.com")
 
 val response = http.get("/DaikonWeb")
@@ -63,8 +65,13 @@ println(response.statusCode)
 println(response.body)
 ```
 
-## Enable request logging as Curl
+## Enable request logging
+To enable it you only need to pass a printer to the `Http` instance.
+The only printer available is `CurlPrinter`, but you can implement your own `Printer`.
+
 ```
-val http = Http(log = System.out)
-http.get("https://github.com/DaikonWeb").body
+import topinambur.Http
+
+val curlPrinter = CurlPrinter(System.out)
+Http(printer = curlPrinter).get("http://localhost:8080")
 ```
