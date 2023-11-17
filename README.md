@@ -3,8 +3,10 @@
 ![Topinambur](./logo.svg)
 
 Topinambur is a simple and minimal library to make HTTP calls in Kotlin with minimal effort. The main goals are:
-* Use a really lightweight http library
-* Use an object-oriented http library
+* Lightweight
+* Easy to use
+* No boilerplate code through named parameters and defaults
+* Easily extended
 
 
 ## How to add Topinambur to your project
@@ -44,7 +46,7 @@ implementation 'com.github.DaikonWeb:topinambur:1.14.1'
 ```
 
 ## Getting Started
-```
+```kotlin
 import topinambur.Http.Companion.HTTP
 
 val response = HTTP.get("https://github.com/DaikonWeb")
@@ -54,7 +56,7 @@ println(response.body)
 ```
 
 ## Client Instance with a baseUrl
-```
+```kotlin
 import topinambur.Http
 
 val http = Http("https://github.com")
@@ -68,7 +70,7 @@ println(response.body)
 ## Methods available
 You can also pass the parameters as named parameters to enhance readability.
 
-```
+```kotlin
 val http = Http(baseUrl = "http://localhost:8080")
 
 http.head(url = "/")
@@ -130,10 +132,10 @@ val curlPrinter = CurlPrinter(System.out)
 Http(printer = curlPrinter).get("http://localhost:8080")
 ```
 
-# Multipart data post request
+## Multipart data post request
 You can also make a post request to send a multipart data file along with some fields.
 
-```
+```kotlin
 import topinambur.Http.Companion.HTTP
 
 HTTP.post(
@@ -146,7 +148,7 @@ HTTP.post(
 ```
 
 
-# Autorize a request
+## Autorize a request
 You can also make an authorized request with base and bearer authentication.
 
 You can also implement your own auth method implementing the `AuthorizationStrategy` interface.
