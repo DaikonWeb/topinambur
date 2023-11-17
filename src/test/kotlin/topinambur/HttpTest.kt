@@ -250,7 +250,7 @@ class HttpTest {
         HttpServer(8080)
             .get("/") { _, res -> res.status(OK_200) }
             .start().use {
-                val response = Http("http://localhost:8080/").call()
+                val response = Http(baseUrl = "http://localhost:8080/").call(url = "/", method = "GET")
                 assertThat(response.statusCode).isEqualTo(OK_200)
             }
     }
@@ -260,7 +260,7 @@ class HttpTest {
         HttpServer(8080)
             .get("/") { _, res -> res.status(OK_200) }
             .start().use {
-                val response = Http("http://localhost:8080/").call(url = "/")
+                val response = Http("http://localhost:8080/").call(url = "/", method = "GET")
                 assertThat(response.statusCode).isEqualTo(OK_200)
             }
     }

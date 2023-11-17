@@ -177,8 +177,8 @@ class Http @JvmOverloads constructor(
 
     @JvmOverloads
     fun call(
-        url: String = "",
-        method: String = "GET",
+        url: String,
+        method: String,
         params: Map<String, String> = emptyMap(),
         data: ByteArray = "".toByteArray(),
         headers: Map<String, String> = emptyMap(),
